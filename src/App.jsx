@@ -28,6 +28,7 @@ import PaymentPage from './views/paymentPage';
 import TicketPage from './views/ticketPage';
 
 function App() {
+  //app.jsx
   const dispatch = useDispatch();
 
   const handleGetUserDetails = async (id) => {
