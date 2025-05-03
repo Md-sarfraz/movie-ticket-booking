@@ -1,0 +1,31 @@
+name: Sync to Friend Repo
+
+on:
+  push:
+    branches:
+      - main  # or the branch you want to trigger from
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout your repository
+        uses: actions/checkout@v3
+
+      - name: Set Git user info
+        run: |
+          git config --global user.name "Md-sarfraz"
+          git config --global user.email "mdsarfraz62070@gmail.com"
+
+      - name: Clone friend's repository
+        run: |
+          git clone https://x-access-token:${{ secrets.FRIEND_REPO_TOKEN }}@github.com/Naved1786/Booking_Show_web.git friend-repo
+
+      - name: Copy all files to friend's repo (except .git)
+        run: |
+          rsync -av --delete --exclude='.git' ./ friend-repo/
+          cd friend-repo
+          git add .
+          git commit -m "Auto-sync from Md-sarfraz/movie-ticket-booking" || echo "No changes to commit"
+          git push
