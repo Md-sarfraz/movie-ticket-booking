@@ -88,7 +88,7 @@ const SignUpPage = () => {
             required
           />
           <button type="submit" className="px-8 py-3 bg-orange-500 text-white rounded-full text-lg hover:bg-orange-600 transition duration-300">
-            SIGN UP
+            SIGN U
           </button>
         </form>
       </div>

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  FaUsers, 
-  FaFilm, 
-  FaTicketAlt, 
-  FaChartBar, 
-  FaCog, 
-  FaCalendarAlt, 
-  FaBell, 
+import { FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaUsers,
+  FaFilm,
+  FaTicketAlt,
+  FaChartBar,
+  FaCog,
+  FaCalendarAlt,
+  FaBell,
   FaSearch,
   FaTheaterMasks,
   FaDollarSign,
@@ -18,10 +19,10 @@ import { useNavigate } from 'react-router-dom';
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState('weekly');
   const navigate = useNavigate();
-  
+
   // Mock data for charts
   const revenueData = { daily: 2150, weekly: 12500, monthly: 45000 };
-  
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Bar */}
@@ -72,42 +73,58 @@ const Dashboard = () => {
                 <FaUsers className="text-xl text-red-600" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-green-500 font-medium">+5%</span>
-              <span className="text-gray-500 ml-2">from last week</span>
-            </div>
+
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 border-l-4 border-blue-500 hover:shadow-lg transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">Active Movies</p>
+                <p className="text-sm font-medium text-gray-500">Total Movies</p>
                 <h3 className="text-2xl font-bold text-gray-800">48</h3>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <FaFilm className="text-xl text-blue-600" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-green-500 font-medium">+2</span>
-              <span className="text-gray-500 ml-2">new releases</span>
+          </div>
+
+          <div className="bg-white shadow-md rounded-lg p-6 border-l-4 border-purple-500 hover:shadow-lg transition-all duration-300">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Theaters</p>
+                <h3 className="text-2xl font-bold text-gray-800">12</h3>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-full">
+                <FaMapMarkerAlt className="text-xl text-purple-600" />
+              </div>
             </div>
           </div>
+
 
           <div className="bg-white shadow-md rounded-lg p-6 border-l-4 border-green-500 hover:shadow-lg transition-all duration-300">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">Ticket Sales</p>
+                <p className="text-sm font-medium text-gray-500">Total Events</p>
+                <h3 className="text-2xl font-bold text-gray-800">20</h3>
+              </div>
+              <div className="p-3 bg-green-100 rounded-full">
+                <FaCalendarAlt className="text-xl text-green-600" />
+              </div>
+            </div>
+          </div>
+
+
+          <div className="bg-white shadow-md rounded-lg p-6 border-l-4 border-green-500 hover:shadow-lg transition-all duration-300">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Booking</p>
                 <h3 className="text-2xl font-bold text-gray-800">328</h3>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <FaTicketAlt className="text-xl text-green-600" />
               </div>
             </div>
-            <div className="flex items-center text-sm">
-              <span className="text-green-500 font-medium">+12%</span>
-              <span className="text-gray-500 ml-2">from yesterday</span>
-            </div>
+
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 border-l-4 border-purple-500 hover:shadow-lg transition-all duration-300">
@@ -134,19 +151,19 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-gray-800">Revenue Overview</h3>
               <div className="flex space-x-2">
-                <button 
+                <button
                   className={`px-3 py-1 text-sm rounded-md ${dateRange === 'daily' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}
                   onClick={() => setDateRange('daily')}
                 >
                   Daily
                 </button>
-                <button 
+                <button
                   className={`px-3 py-1 text-sm rounded-md ${dateRange === 'weekly' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}
                   onClick={() => setDateRange('weekly')}
                 >
                   Weekly
                 </button>
-                <button 
+                <button
                   className={`px-3 py-1 text-sm rounded-md ${dateRange === 'monthly' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'}`}
                   onClick={() => setDateRange('monthly')}
                 >
@@ -154,7 +171,7 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* Chart Placeholder */}
             <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
               <div className="text-center">
@@ -162,7 +179,7 @@ const Dashboard = () => {
                 <p className="text-gray-500">Revenue Chart: ${revenueData[dateRange]}</p>
               </div>
             </div>
-            
+
             {/* Stats Breakdown */}
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="bg-gray-50 p-3 rounded-lg">
@@ -179,14 +196,14 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Upcoming Shows */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800">Upcoming Shows</h3>
               <button className="text-sm text-red-500 hover:text-red-600">View All</button>
             </div>
-            
+
             {/* Show List */}
             <div className="space-y-4">
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
@@ -203,7 +220,7 @@ const Dashboard = () => {
                 </div>
                 <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full">80% Full</span>
               </div>
-              
+
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <div className="w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center mr-4">
                   <FaTheaterMasks className="text-blue-500" />
@@ -218,7 +235,7 @@ const Dashboard = () => {
                 </div>
                 <span className="bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded-full">45% Full</span>
               </div>
-              
+
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <div className="w-10 h-10 bg-purple-100 rounded-md flex items-center justify-center mr-4">
                   <FaTheaterMasks className="text-purple-500" />
@@ -236,7 +253,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Recent Activity & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Activity */}
@@ -245,7 +262,7 @@ const Dashboard = () => {
               <h3 className="text-lg font-semibold text-gray-800">Recent Activity</h3>
               <button className="text-sm text-red-500 hover:text-red-600">View All</button>
             </div>
-            
+
             <div className="divide-y">
               <div className="py-3 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
@@ -256,7 +273,7 @@ const Dashboard = () => {
                   <p className="text-sm text-gray-500">10 minutes ago</p>
                 </div>
               </div>
-              
+
               <div className="py-3 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
                   <FaTicketAlt className="text-blue-500" />
@@ -266,7 +283,7 @@ const Dashboard = () => {
                   <p className="text-sm text-gray-500">25 minutes ago</p>
                 </div>
               </div>
-              
+
               <div className="py-3 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
                   <FaFilm className="text-yellow-500" />
@@ -276,7 +293,7 @@ const Dashboard = () => {
                   <p className="text-sm text-gray-500">1 hour ago</p>
                 </div>
               </div>
-              
+
               <div className="py-3 flex items-center">
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4">
                   <FaCog className="text-red-500" />
@@ -288,33 +305,33 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Quick Actions */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <button className="p-4 bg-red-50 hover:bg-red-100 rounded-lg flex flex-col items-center transition-colors">
                 <FaFilm className="text-red-500 text-xl mb-2" />
                 <span className="text-sm text-gray-800">Add Movie</span>
               </button>
-              
+
               <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg flex flex-col items-center transition-colors">
                 <FaCalendarAlt className="text-blue-500 text-xl mb-2" />
                 <span className="text-sm text-gray-800">Schedule</span>
               </button>
-              
+
               <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg flex flex-col items-center transition-colors">
                 <FaUsers className="text-green-500 text-xl mb-2" />
                 <span className="text-sm text-gray-800">Users</span>
               </button>
-              
+
               <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg flex flex-col items-center transition-colors">
                 <FaListAlt className="text-purple-500 text-xl mb-2" />
                 <span className="text-sm text-gray-800">Reports</span>
               </button>
             </div>
-            
+
             {/* System Status */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h4 className="text-sm font-medium text-gray-700 mb-2">System Status</h4>

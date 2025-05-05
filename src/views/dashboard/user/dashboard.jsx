@@ -234,7 +234,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recommended Movies */}
-        <div>
+        {/* <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-gray-800">Recommended For You</h2>
             <button className="text-red-600 hover:text-red-700 font-medium flex items-center space-x-1">
@@ -276,7 +276,7 @@ const Dashboard = () => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
