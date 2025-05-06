@@ -160,7 +160,7 @@ export default function UserList() {
 
   return (
     <>
-      {/* Header */}
+      {/* Header
       <header className="bg-white shadow-sm">
         <div className="px-4 py-6">
           <div className="flex items-center justify-between">
@@ -176,7 +176,7 @@ export default function UserList() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className="flex-grow px-4 py-8">
