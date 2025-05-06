@@ -26,6 +26,7 @@ import axios from 'axios';
 import EventDetails from './views/eventDetails';
 import PaymentPage from './views/paymentPage';
 import TicketPage from './views/ticketPage';
+import UserList from './views/dashboard/admin/userList';
 
 function App() {
   //app.jsx
@@ -76,6 +77,7 @@ function App() {
           <Route path='/adminLogin' element={<AdminLogin />} />
           <Route path='/adminDashboard/*' element={<AdminDashboard />} />
           <Route path='/paymentPage' element={<PaymentPage />} />
+          <Route path='/userList' element={<UserList />} />
 
           <Route path='/userDashboard/*' element={<UserDashboardLayout />} />
 

@@ -55,14 +55,14 @@ const AdminSidebar = () => {
           
           <li>
             <button
-              onClick={() => handleNavigation("users")}
+              onClick={() => handleNavigation("userList")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/users") || activeItem === "users"
                   ? "bg-red-100 text-red-600 font-medium" 
                   : "text-gray-700 hover:bg-gray-50 active:bg-red-50"
               }`}
             >
-              <FaUsers size={18} className={isActive("/users") || activeItem === "users" ? "text-red-500" : "text-gray-500"} />
+              <FaUsers size={18} className={isActive("/userList") || activeItem === "userList" ? "text-red-500" : "text-gray-500"} />
               <span>Manage Users</span>
             </button>
           </li>

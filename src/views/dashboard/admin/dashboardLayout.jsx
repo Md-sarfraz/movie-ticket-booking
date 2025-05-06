@@ -5,6 +5,7 @@ import Dashboard from '../admin/dashboard'
 import MovieList from '../admin/movieList'
 import TheaterList from '../admin/theaterLIst'
 import UserProfile from '../user/userProfile'
+import UserList from './userList'
 
 
 const DashboardLayout = () => {
@@ -18,6 +19,7 @@ const DashboardLayout = () => {
                     <Route path='/' element={<Dashboard/>}/>
                     <Route path='/dashboard' element={<Dashboard/>}/>
                     <Route path='/movieList' element={<MovieList/>}/>
+                    <Route path='/userList' element={<UserList/>}/>
                     <Route path='/theaterList' element={<TheaterList/>}/>
                     <Route path='/userProfile' element={<UserProfile/>}/>
                 </Routes>
