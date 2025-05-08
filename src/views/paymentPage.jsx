@@ -3,7 +3,7 @@ import { CreditCard, Wallet, Smartphone, Calendar, Clock, Star, Building, Info, 
 import { useNavigate, useLocation } from "react-router-dom";
 
 const PaymentPage = () => {
-  const [paymentMethod, setPaymentMethod] = useState("creditCard");
+  const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -19,8 +19,49 @@ const PaymentPage = () => {
   const serviceFee = totalPrice * 0.1;
   const finalTotal = totalPrice + serviceFee;
   
-  const handlePaymentMethodChange = (method) => {
-    setPaymentMethod(method);
+  // Handle Razorpay payment
+  const handlePayment = () => {
+    // In a real implementation, you would make an API call to your backend to create a Razorpay order
+    // Here we're simulating it with a direct frontend implementation
+    
+    const options = {
+      key: "rzp_test_YOUR_KEY_HERE", // Replace with your Razorpay key
+      amount: finalTotal * 100, // Razorpay amount is in paisa (1/100 of currency unit)
+      currency: "INR",
+      name: "Cinema Tickets",
+      description: `${movie.title} - ${seats.length} tickets`,
+      image: "https://your-cinema-logo.png",
+      handler: function(response) {
+        // Handle successful payment
+        // response.razorpay_payment_id contains payment id
+        console.log(response);
+        navigate('/ticketPage', { 
+          state: { 
+            movie, 
+            seats, 
+            seatLabels, 
+            totalPrice: finalTotal,
+            paymentId: response.razorpay_payment_id
+          } 
+        });
+      },
+      prefill: {
+        name: "",
+        email: "",
+        contact: ""
+      },
+      notes: {
+        movieTitle: movie.title,
+        seats: seatLabels.join(', '),
+        showtime: movie.showtime
+      },
+      theme: {
+        color: "#3B82F6"
+      }
+    };
+    
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
   };
   
   return (
@@ -48,104 +89,40 @@ const PaymentPage = () => {
             </div>
           </div>
           
-          {/* Payment Method Selection */}
+          {/* Payment Method - Razorpay */}
           <div className="mb-10">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div 
-                className={`border-2 rounded-lg p-5 text-center cursor-pointer transition-all duration-200 ${paymentMethod === "creditCard" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"}`}
-                onClick={() => handlePaymentMethodChange("creditCard")}
-              >
-                <div className="flex justify-center mb-3">
-                  <CreditCard className={`h-8 w-8 ${paymentMethod === "creditCard" ? "text-blue-500" : "text-gray-500"}`} />
+            <div className="border-2 rounded-lg p-6 border-blue-500 bg-blue-50">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-white rounded-lg shadow-md p-2 mr-4">
+                  <img src="/api/placeholder/40/40" alt="Razorpay" className="h-full w-full object-contain" />
                 </div>
-                <span className={`text-sm font-medium ${paymentMethod === "creditCard" ? "text-blue-600" : "text-gray-600"}`}>Credit Card</span>
+                <div>
+                  <h4 className="font-bold text-gray-800">Razorpay Secure Checkout</h4>
+                  <p className="text-sm text-gray-600">Pay securely using credit/debit cards, UPI, wallets & more</p>
+                </div>
               </div>
               
-              <div 
-                className={`border-2 rounded-lg p-5 text-center cursor-pointer transition-all duration-200 ${paymentMethod === "paypal" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"}`}
-                onClick={() => handlePaymentMethodChange("paypal")}
-              >
-                <div className="flex justify-center mb-3">
-                  <Wallet className={`h-8 w-8 ${paymentMethod === "paypal" ? "text-blue-500" : "text-gray-500"}`} />
-                </div>
-                <span className={`text-sm font-medium ${paymentMethod === "paypal" ? "text-blue-600" : "text-gray-600"}`}>PayPal</span>
-              </div>
+              <ul className="grid grid-cols-4 gap-2 mb-4">
+                <li className="bg-white p-2 rounded border border-gray-200 flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-gray-700" />
+                </li>
+                <li className="bg-white p-2 rounded border border-gray-200 flex items-center justify-center">
+                  <Wallet className="h-6 w-6 text-gray-700" />
+                </li>
+                <li className="bg-white p-2 rounded border border-gray-200 flex items-center justify-center">
+                  <Smartphone className="h-6 w-6 text-gray-700" />
+                </li>
+                <li className="bg-white p-2 rounded border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-700">
+                  UPI
+                </li>
+              </ul>
               
-              <div 
-                className={`border-2 rounded-lg p-5 text-center cursor-pointer transition-all duration-200 ${paymentMethod === "mobilePay" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"}`}
-                onClick={() => handlePaymentMethodChange("mobilePay")}
-              >
-                <div className="flex justify-center mb-3">
-                  <Smartphone className={`h-8 w-8 ${paymentMethod === "mobilePay" ? "text-blue-500" : "text-gray-500"}`} />
-                </div>
-                <span className={`text-sm font-medium ${paymentMethod === "mobilePay" ? "text-blue-600" : "text-gray-600"}`}>Mobile Pay</span>
-              </div>
+              <p className="text-sm text-gray-600 italic">
+                You'll be redirected to Razorpay's secure payment page to complete your purchase
+              </p>
             </div>
           </div>
-          
-          {/* Payment Form */}
-          {paymentMethod === "creditCard" && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-12 shadow-sm"
-                  />
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <CreditCard className="h-6 w-6 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  className="w-full px-4 py-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
-                  <input
-                    type="text"
-                    placeholder="MM/YY"
-                    className="w-full px-4 py-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="123"
-                      className="w-full px-4 py-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                    />
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      <Info className="h-5 w-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center mt-2">
-                <input 
-                  type="checkbox" 
-                  id="saveCard" 
-                  className="h-5 w-5 text-blue-500 focus:ring-blue-400 border-gray-300 rounded"
-                />
-                <label htmlFor="saveCard" className="ml-3 block text-sm text-gray-700">
-                  Save card for future payments
-                </label>
-              </div>
-            </div>
-          )}
           
           {/* Security Note */}
           <div className="mt-8 flex items-center text-sm text-gray-500">
@@ -158,14 +135,7 @@ const PaymentPage = () => {
           {/* Submit Button */}
           <button
             className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors duration-300 shadow-md hover:shadow-lg text-lg"
-            onClick={() => navigate('/ticketPage', { 
-              state: { 
-                movie, 
-                seats, 
-                seatLabels, 
-                totalPrice: finalTotal 
-              } 
-            })}
+            onClick={handlePayment}
           >
             Pay ${formatPrice(finalTotal)}
           </button>
@@ -181,7 +151,7 @@ const PaymentPage = () => {
           </div>
         </div>
         
-        {/* Right Side - Order Summary (Redesigned as a smaller card) */}
+        {/* Right Side - Order Summary */}
         <div className="md:w-1/4 p-4 flex flex-col justify-center">
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg p-6 text-white max-w-xs">
             <h2 className="text-xl font-bold mb-5 border-b border-white border-opacity-20 pb-3">Order Summary</h2>
