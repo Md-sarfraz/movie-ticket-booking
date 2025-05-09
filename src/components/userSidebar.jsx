@@ -32,7 +32,7 @@ const UserSidebar = () => {
               alt="Profile"
               className="rounded-full w-20 h-20 mb-3 border-2 border-white shadow-md object-cover"
             />
-            <div className="absolute bottom-3 right-0 bg-green-400 w-4 h-4 rounded-full border-2 border-white"></div>
+            {/* <div className="absolute bottom-3 right-0 bg-green-400 w-4 h-4 rounded-full border-2 border-white"></div> */}
           </div>
         ) : (
           <div className="relative">
