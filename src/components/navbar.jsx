@@ -7,6 +7,7 @@ import { use } from 'react';
 import { Search } from 'lucide-react';
 import SearchBar from './searchbar';
 import { useSelector } from 'react-redux';
+import BookTheShowLogo from './bookTheShowLogo';
 
 const Navbar = ({ onSearch }) => {
   const [isShowMenu, setIsShowMenu] = useState(false);
@@ -183,7 +184,7 @@ const Navbar = ({ onSearch }) => {
 
         </li>
 
-        <li><img src="./images/navbar-logo.png" alt="" className='w-[80px]' /></li>
+        <li className='pl-5'><BookTheShowLogo/></li>
       </ul>
       <ul className='flex gap-10 justify-center text-base  '>
         <li className='group flex justify-center flex-col items-center'><Link to='/'>Home</Link>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import BookTheShowLogo from './bookTheShowLogo';
 const Footer = () => {
   const location=useLocation();
   const pathname=location.pathname;
@@ -13,8 +14,7 @@ const Footer = () => {
 
         <div className='flex justify-between w-[75%] h-28 items-center border-b-[1px] border-b-gray-600'>
           <div className='relative flex flex-col'>
-            <img src="./images/navbar-logo.png" alt="" className=' w-24' />
-            <p className='text-white m-0 absolute top-12 left-5 text-[10px]'>SHOWBOOK</p>
+           <BookTheShowLogo/>
           </div>
           <div className=' flex gap-4 items-center'>
             <p className=' text-sm text-stone-500 hover:text-red-500'>Help/privacy policy</p>
