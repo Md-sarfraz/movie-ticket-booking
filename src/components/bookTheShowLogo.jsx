@@ -4,11 +4,11 @@ export default function BookTheShowLogo() {
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="flex items-center space-x-1">
-        <span className="text-xl font-extrabold text-indigo-900">book</span>
+        <span className="text-xl font-bold text-indigo-900">book</span>
         <div className="bg-yellow-400 rounded-md transform rotate-6 px-3 py-1">
-          <span className="text-xl font-extrabold text-indigo-900">the</span>
+          <span className="text-xl font-bold text-indigo-900">the</span>
         </div>
-        <span className="text-xl font-extrabold text-purple-800">show</span>
+        <span className="text-xl font-bold text-purple-800">show</span>
       </div>
       {/* <div className="mt-2 flex items-center">
         <div className="h-1 w-10 bg-yellow-400 rounded-full"></div>
