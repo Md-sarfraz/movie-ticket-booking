@@ -34,19 +34,19 @@ const SignUpPage = () => {
   }
 
   return (
-    <div className="flex h-screen pt-20">
-      <div className="w-1/2 bg-gradient-to-br from-red-500 to-orange-500 flex flex-col justify-center items-center text-white p-8">
-        <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
-        <p className="text-center mb-6">To keep connected with us please login with your personal info</p>
+    <div className="flex flex-col-reverse lg:flex-row min-h-screen pt-16 md:pt-20">
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-red-500 to-orange-500 flex flex-col justify-center items-center text-white p-4 md:p-8 min-h-[40vh] lg:min-h-screen">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">Welcome Back!</h1>
+        <p className="text-center mb-6 px-4">To keep connected with us please login with your personal info</p>
         <Link to="/LoginPage">
-          <button className="px-8 py-2 border-2 border-white rounded-full text-lg hover:bg-white hover:text-red-500 transition duration-300">
+          <button className="px-6 md:px-8 py-2 border-2 border-white rounded-full text-base md:text-lg hover:bg-white hover:text-red-500 transition duration-300">
             SIGN IN
           </button>
         </Link>
       </div>
 
-      <div className="w-1/2 flex flex-col justify-center items-center p-8 bg-white">
-        <h1 className="text-4xl font-bold mb-4">Create Account</h1>
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-4 md:p-8 bg-white">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Create Account</h1>
         <div className="flex space-x-4 mb-4">
           <div className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300">
             <i className="fab fa-facebook-f"></i>
@@ -59,7 +59,7 @@ const SignUpPage = () => {
           </div>
         </div>
         <p className="text-gray-500 mb-4">or use your email for registration</p>
-        <form className="flex flex-col space-y-4 w-3/4" onSubmit={(e) => handleSubmit(e)}>
+        <form className="flex flex-col space-y-4 w-full max-w-sm" onSubmit={(e) => handleSubmit(e)}>
           <input
             type="text"
             name="username"
@@ -70,7 +70,7 @@ const SignUpPage = () => {
             required
           />
           <input
-            type="email"
+            type="email"  
             name="email"
             placeholder="Email"
             className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -87,13 +87,14 @@ const SignUpPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit" className="px-8 py-3 bg-orange-500 text-white rounded-full text-lg hover:bg-orange-600 transition duration-300">
-            SIGN U
+          <button type="submit" className="px-6 md:px-8 py-3 bg-orange-500 text-white rounded-full text-base md:text-lg hover:bg-orange-600 transition duration-300 w-full md:w-auto">
+            SIGN UP
           </button>
         </form>
       </div>
     </div>
   );
 };
+
 
 export default SignUpPage;

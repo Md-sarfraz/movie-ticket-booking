@@ -15,7 +15,7 @@ export default function CardSlider({slides}) {
   return (
     <>
       <Swiper slidesPerView={5} navigation={true} modules={[Navigation]}  className="mySwiper w-full h-[85%]">
-       
+
         {
           slides.map((item,index)=>(
             <SwiperSlide className=' flex justify-center items-center' key={index}>

@@ -1,67 +1,21 @@
-import React from 'react'
-import Slider from '../components/slider'
-import Slider2 from '../components/slider2'
-// import BackgroundImg from '../components/backgroundImg'
-import ServiceCard from '../components/serviceCard.jsx'
-import CardSlider from '../components/cardSlider.jsx'
+import React from 'react';
+import Slider from '../components/slider';
+import Slider2 from '../components/slider2';
+import ServiceCard from '../components/serviceCard.jsx';
+import CardSlider from '../components/cardSlider.jsx';
 
 const Home = () => {
   const topFeatureArr = [
-    {
-      image: 'feature-img9.jpg',
-      title: '8.9/10',
-      movieName: 'THE FAIL GUY'
-
-    },
-    {
-      image: 'feature-img8.jpg',
-      title: '8.9/10',
-      movieName: 'ALL OF US STRANGERS'
-
-    },
-    {
-      image: 'feature-img7.jpg',
-      title: '8.9/10',
-      movieName: 'FURIOSA'
-
-    },
-    {
-      image: 'feature-img6.jpg',
-      title: '8.9/10',
-      movieName: 'AVENGERS'
-
-    },
-    {
-      image: 'feature-img5.jpg',
-      title: '8.9/10',
-      movieName: 'KALKI'
-
-    },
-    {
-      image: 'feature-img4.jpg',
-      title: '8.9/10',
-      movieName: '12TH FAIL'
-
-    },
-    {
-      image: 'feature-img3.jpg',
-      title: '8.9/10',
-      movieName: 'FIGHTER'
-
-    },
-    {
-      image: 'feature-img2.jpg',
-      title: '8.9/10',
-      movieName: 'INDIAN 2'
-
-    },
-    {
-      image: 'feature-img1.jpg',
-      title: '8.9/10',
-      movieName: 'JAILER'
-
-    },
-  ]
+    { image: 'feature-img9.jpg', title: '8.9/10', movieName: 'THE FAIL GUY' },
+    { image: 'feature-img8.jpg', title: '8.9/10', movieName: 'ALL OF US STRANGERS' },
+    { image: 'feature-img7.jpg', title: '8.9/10', movieName: 'FURIOSA' },
+    { image: 'feature-img6.jpg', title: '8.9/10', movieName: 'AVENGERS' },
+    { image: 'feature-img5.jpg', title: '8.9/10', movieName: 'KALKI' },
+    { image: 'feature-img4.jpg', title: '8.9/10', movieName: '12TH FAIL' },
+    { image: 'feature-img3.jpg', title: '8.9/10', movieName: 'FIGHTER' },
+    { image: 'feature-img2.jpg', title: '8.9/10', movieName: 'INDIAN 2' },
+    { image: 'feature-img1.jpg', title: '8.9/10', movieName: 'JAILER' },
+  ];
 
   const popularMovie = [
     {
@@ -74,7 +28,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -87,7 +41,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -100,7 +54,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -113,7 +67,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -126,7 +80,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -139,7 +93,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -152,7 +106,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -165,7 +119,7 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
     {
@@ -178,207 +132,184 @@ const Home = () => {
       releaseDate: 'April 27, 2018 (USA)',
       duration: '2h 36m',
       description:
-        'The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.',
+        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
       rating: 99,
     },
-  ]
+  ];
 
   const PopularEvents = [
-    {
-      image: 'popular-event-img1.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img2.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img3.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img4.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img5.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img6.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img7.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img8.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-    {
-      image: 'popular-event-img9.avif',
-      title: '8.9/10',
-      movieName: 'SHAAN'
-    },
-  ]
+    { image: 'popular-event-img1.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img2.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img3.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img4.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img5.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img6.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img7.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img8.avif', title: '8.9/10', movieName: 'SHAAN' },
+    { image: 'popular-event-img9.avif', title: '8.9/10', movieName: 'SHAAN' },
+  ];
 
   return (
-    <div className='overflow-hidden'>
-      <div className='pt-28 mx-8'>
+    <div className="overflow-hidden">
+
+      {/* -------- HERO SLIDER -------- */}
+      <div className="pt-20 md:pt-28 mx-4 md:mx-8">
         <Slider />
       </div>
 
-      <div className='py-10 pb-10 mx-8'>
-        <h1 className='text-2xl text-red-500 mx-3 font-bold py-2'>Upcoming..</h1>
-        <div className='my-2 flex justify-center items-center'>
+      {/* -------- UPCOMING MOVIES -------- */}
+      <div className="py-6 md:py-10 mx-4 md:mx-8">
+        <h1 className="text-xl md:text-2xl text-red-500 font-bold">Upcoming..</h1>
+
+        <div className="my-3 flex justify-center">
           <Slider2 />
         </div>
       </div>
 
+      {/* -------- MAIN MOVIE SECTION -------- */}
+      <div className="relative min-h-screen bg-[#e3e0e3] w-full mt-6">
+        <img src="./images/image-lines-header.jpg" className="w-full object-cover" />
 
-      <div className="relative h-[350vh] bg-[#e3e0e3] w-full overflow-hidden">
-        <div>
-          <img src="./images/image-lines-header.jpg" alt="" />
-        </div>
+        <div className="relative flex flex-col pt-10 md:pt-20">
 
-
-        <div className="relative w-full h-full flex flex-col pt-20">
-          <div className="w-full  z-10 flex justify-center gap-10">
+          {/* SERVICE CARDS */}
+          <div className="w-full flex flex-col md:flex-row justify-center gap-6 md:gap-10 px-4">
             <ServiceCard image="service-card3.png" title="Upcoming Film Festivals" />
             <ServiceCard image="service-card2.png" title="Watch Film Awards" />
             <ServiceCard image="service-card1.png" title="Comedy TV Shows" />
           </div>
 
-          <div className='flex flex-col justify-center items-center pt-10 pb-4'>
-            <img src="./images/film-logo.png" className='w-10' alt="" />
-            <p className=' text-stone-400 text-xs'>Watch Now</p>
-            <h1 className='text-3xl font-bold'> Popular Movies</h1>
+          {/* POPULAR MOVIES */}
+          <div className="flex flex-col items-center pt-10 px-4">
+            <img src="./images/film-logo.png" className="w-8 md:w-10" />
+            <p className="text-stone-400 text-xs">Watch Now</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Popular Movies</h1>
           </div>
 
-          <div className='flex items-center gap-1 text-red-500 justify-end pr-10 cursor-pointer'>
-            <p>See All</p>
+          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
+            <p className="text-sm md:text-base">See All</p>
             <i className="fa-solid fa-angle-right text-xs"></i>
           </div>
 
-          <div className="w-full flex justify-center ">
+          <div className="w-full flex justify-center px-2">
             <CardSlider slides={popularMovie} />
+          </div>
 
+          {/* TOP FEATURED MOVIES */}
+          <div className="flex flex-col items-center pt-8 px-4">
+            <p className="text-stone-400 text-xs">Watch Now</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Top Featured Movies</h1>
           </div>
-          <div className=' flex flex-col justify-center items-center'>
-            <p className=' text-stone-400 text-xs'>Watch Now</p>
-            <h1 className='text-3xl font-bold'>Top Featured Movies</h1>
-          </div>
-          <div className='flex items-center gap-1 text-red-500 justify-end pr-10 cursor-pointer'>
-            <p>See All</p>
+
+          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
+            <p className="text-sm md:text-base">See All</p>
             <i className="fa-solid fa-angle-right text-xs"></i>
           </div>
-          <div>
+
+          <div className="px-2">
             <CardSlider slides={topFeatureArr} />
           </div>
 
-          <div className=' flex flex-col justify-center items-center'>
-            <p className=' text-stone-400 text-xs'>Watch Now</p>
-            <h1 className='text-3xl font-bold'>Popular Events</h1>
+          {/* POPULAR EVENTS */}
+          <div className="flex flex-col items-center pt-8 px-4">
+            <p className="text-stone-400 text-xs">Watch Now</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Popular Events</h1>
           </div>
-          <div className='flex items-center gap-1 text-red-500 justify-end pr-10 cursor-pointer'>
-            <p>See All</p>
+
+          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
+            <p className="text-sm md:text-base">See All</p>
             <i className="fa-solid fa-angle-right text-xs"></i>
           </div>
-          <div>
+
+          <div className="px-2 pb-10">
             <CardSlider slides={PopularEvents} />
           </div>
-
-
         </div>
       </div>
 
-      <div className='w-full h-[140vh] flex'>
-        <div className='relative h-full w-6/12 flex items-center justify-center'>
-          <div className='absolute bottom-32 left-20 opacity-[0.2]'>
-            <img src="./images/best-seller-img1.png" alt="" className=' ' />
-          </div>
-          <div className='absolute z-20 w-60 bottom-24 right-32'>
-            <img src="./images/best-seller-img2.png" alt="" className='' />
-            <div className='relative'>
-              <p className='absolute bottom-[130px] z-30 right-[90px]  text-5xl font-bold text-red-500'>20</p>
-              <h1 className='absolute bottom-[85px] z-30 right-[80px] text-sm text-gray-400'>year of <br /> producing</h1>
+      {/* -------- BEST SELLER SECTION -------- */}
+      <div className="w-full flex flex-col lg:flex-row py-14 lg:py-24 px-4 lg:px-16">
+
+        {/* LEFT IMAGES */}
+        <div className="relative w-full lg:w-6/12 h-[80vh] lg:h-[140vh] flex items-center justify-center mt-10 lg:mt-0">
+
+          <img className="absolute bottom-10 left-10 opacity-30 w-40 lg:w-60"
+            src="./images/best-seller-img1.png" />
+
+          <div className="absolute w-40 lg:w-60 right-10 bottom-20">
+            <img src="./images/best-seller-img2.png" />
+            <div className="relative">
+              <p className="absolute text-4xl lg:text-5xl font-bold text-red-500 bottom-[120px] right-[70px]">20</p>
+              <h1 className="absolute bottom-[70px] right-[65px] text-xs lg:text-sm text-gray-400">year of <br /> producing</h1>
             </div>
           </div>
-          <div className='absolute z-[1px] left-16 bottom-28 transform rotate-[50deg] w-52'>
-            <img src="./images/best-seller-img3.png" alt="" className=' ' />
-          </div>
-          <div className='absolute w-40 right-10 top-96'>
-            <img src="./images/best-seller-img4.png" alt="" className='' />
-          </div>
-          <div className='absolute w-60 h-72 z-10 right-0 top-36'>
-            <img src="./images/best-seller-img5.jpg" alt="" className=' w-full h-full' />
-          </div>
-          <div className='absolute w-72 transform rotate-[-15deg] left-32'>
-            <img src="./images/best-seller-img6.jpg" alt="" className='' />
-          </div>
 
+          <img className="absolute left-16 bottom-28 rotate-[50deg] w-28 lg:w-52"
+            src="./images/best-seller-img3.png" />
+
+          <img className="absolute right-5 top-60 w-28 lg:w-40"
+            src="./images/best-seller-img4.png" />
+
+          <img className="absolute right-0 top-28 w-48 lg:w-60"
+            src="./images/best-seller-img5.jpg" />
+
+          <img className="absolute left-20 rotate-[-15deg] w-40 lg:w-72"
+            src="./images/best-seller-img6.jpg" />
 
         </div>
-        <div className='w-6/12 pt-36 pl-12'>
-          <div className=''>
-            <div className='w-8'>
-              <img src="./images/film-logo.png" alt="" />
-            </div>
-            <h2 className='text-gray-400 text-sm font-bold'>Get to know us</h2>
-            <h1 className='text-4xl font-bold'>The Best Movie Ticket <br /> Distributor</h1>
-            <p className='text-gray-400 text-sm pt-5'>Lorem ipsum dolor sit amet consectur adipiscing elit sed eiusmod tempor incididunt labore dolore magna aliquaenim ad minim. Sed risus augue, commodo ornare felis non, eleifend pharetra eleifend.</p>
-          </div>
-          <div className='flex flex-row w-full items-center'>
-            <div className='w-[60%]'>
-              <div className=' flex items-center py-5'>
-                <div className='w-20'>
-                  <img src="./images/best-seller-logo2.png" alt="" />
-                </div>
+
+        {/* RIGHT TEXT SECTION */}
+        <div className="w-full lg:w-6/12 mt-16 lg:mt-24 lg:pl-12">
+          <img className="w-8" src="./images/film-logo.png" />
+          <h2 className="text-gray-400 text-xs font-bold mt-2">Get to know us</h2>
+          <h1 className="text-3xl lg:text-4xl font-bold mt-2">
+            The Best Movie Ticket <br /> Distributor
+          </h1>
+
+          <p className="text-gray-400 text-sm pt-5 leading-relaxed">
+            Lorem ipsum dolor sit amet consectetur adipiscing elit sed eiusmod tempor
+            incididunt labore dolore magna aliqua.
+          </p>
+
+          <div className="flex flex-col md:flex-row w-full items-start gap-6 mt-8">
+            <div className="md:w-[60%]">
+
+              <div className="flex items-center gap-4 mb-6">
+                <img src="./images/best-seller-logo2.png" className="w-14" />
                 <div>
-                  <h1 className='font-bold'>Unlimited Awards</h1>
-                  <p className='text-sm text-gray-400'>We’ve designed a culture that allows our stewards to assimilate.</p>
+                  <h1 className="font-bold">Unlimited Awards</h1>
+                  <p className="text-sm text-gray-400">
+                    We’ve designed a culture that allows our stewards to excel.
+                  </p>
                 </div>
               </div>
-              <div className=' flex items-center '>
-                <div className='w-20'>
-                  <img src="./images/best-seller-logo1.png" alt="" />
-                </div>
+
+              <div className="flex items-center gap-4">
+                <img src="./images/best-seller-logo1.png" className="w-14" />
                 <div>
-                  <h1 className='font-bold'>Our Directors</h1>
-                  <p className='text-sm text-gray-400'>We’ve designed a culture that allows our stewards to assimilate.</p>
+                  <h1 className="font-bold">Our Directors</h1>
+                  <p className="text-sm text-gray-400">
+                    We’ve designed a culture that allows our team to perform.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className=' w-[26%] h-44 d flex flex-col justify-center px-5 bg-[#F3F3F3] border-b-[6px] border-b-red-500 pl-8'>
-              <h1 className='text-red-500 text-[10px] font-bold'>JOIN US</h1>
-              <p className='font-bold text-base'>Seeking a Career in a Movie Production</p>
+            <div className="md:w-[40%] bg-[#F3F3F3] h-44 px-6 border-b-[6px] border-red-500 flex flex-col justify-center mt-4 md:mt-0">
+              <h1 className="text-red-500 text-xs font-bold">JOIN US</h1>
+              <p className="font-bold text-base">Seeking a Career in Movie Production?</p>
             </div>
           </div>
-          <div className='pt-9'>
-            <button className='bg-red-500 w-40 h-10 text-xs font-bold text-white hover:bg-black hover:text-white transition duration-300 ease-in-out hover:scale-105'>Discover More</button>
-          </div>
+
+          <button className="bg-red-500 mt-8 w-40 h-10 text-xs font-bold text-white hover:bg-black hover:text-white duration-300 hover:scale-105">
+            Discover More
+          </button>
         </div>
 
       </div>
-
-
-
-      {/* <div className='w-full flex justify-center items-center object-cover '>
-          <img src="./images/banner-templete.png" alt="" className='w-full h-[85px] rounded-md'/>
-        </div> */}
 
     </div>
-  )
-}
+  );
+};
 
 export default Home;

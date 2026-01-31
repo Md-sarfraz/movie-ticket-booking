@@ -22,3 +22,27 @@ export const login=async(loginDetail)=>{
 export const updloadImage =async (image,userId)=> {
     return myAxios.post(`/api/user/public/uploadImg/{id}`)
 }
+
+// Fetch all users (admin function)
+export const getAllUsers = async () => {
+    return myAxios.get('/api/user/findAll')
+        .then((response) => {
+            console.log('API Response:', response.data);
+            return response.data;
+        })
+        .catch((error) => {
+            console.error('API Error Details:', error.response);
+            console.error('Request config:', error.config);
+            throw error;
+        });
+}
+
+// Delete user (admin function)
+export const deleteUser = async (userId) => {
+    return myAxios.delete(`/api/user/${userId}`);
+}
+
+// Update user status (admin function)
+export const updateUserStatus = async (userId, status) => {
+    return myAxios.patch(`/api/user/${userId}/status`, { status });
+}

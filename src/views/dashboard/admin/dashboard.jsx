@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaMapMarkerAlt } from "react-icons/fa";
 import {
   FaUsers,
@@ -14,14 +15,50 @@ import {
   FaListAlt,
   FaClock
 } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+
 
 const Dashboard = () => {
   const [dateRange, setDateRange] = useState('weekly');
   const navigate = useNavigate();
-
   // Mock data for charts
   const revenueData = { daily: 2150, weekly: 12500, monthly: 45000 };
+
+  const [counts, setCounts] = useState({
+  totalUsers: 0,
+  totalMovies: 0,
+  totalTheaters: 0,
+  totalEvents: 0
+});
+
+useEffect(() => {
+  const fetchDashboardCounts = async () => {
+    try {
+      const token = localStorage.getItem("token"); // if JWT is used
+
+      const response = await fetch(
+        "http://localhost:1111/api/admin/dashboard",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.status) {
+        setCounts(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to load dashboard counts", error);
+    }
+  };
+
+  fetchDashboardCounts();
+}, []);
+
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -67,7 +104,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Users</p>
-                <h3 className="text-2xl font-bold text-gray-800">1,254</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{counts.totalUsers}</h3>
               </div>
               <div className="p-3 bg-red-100 rounded-full">
                 <FaUsers className="text-xl text-red-600" />
@@ -80,7 +117,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Movies</p>
-                <h3 className="text-2xl font-bold text-gray-800">48</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{counts.totalMovies}</h3>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <FaFilm className="text-xl text-blue-600" />
@@ -92,7 +129,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Theaters</p>
-                <h3 className="text-2xl font-bold text-gray-800">12</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{counts.totalTheaters}</h3>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <FaMapMarkerAlt className="text-xl text-purple-600" />
@@ -105,7 +142,7 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Events</p>
-                <h3 className="text-2xl font-bold text-gray-800">20</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{counts.totalEvents}</h3>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <FaCalendarAlt className="text-xl text-green-600" />

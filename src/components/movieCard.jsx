@@ -4,7 +4,10 @@ const MovieCard = (props) => {
   const navigate = useNavigate();
   //handle the navigate
   const handleNavigate = () => {
-    navigate('/movieDetails', { state: { item: props.movieItem } })
+    navigate('/movieDetails', { 
+  state: { data: props.movieItem }   // key unified
+});
+
   }
   return (
     <div className='overflow-hidden w-[220px] h-[325px] border-4 hover:border-red-500 rounded-lg my-12 cursor-pointer '>
