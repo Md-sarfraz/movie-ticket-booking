@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { myAxios } from "../services/helper";
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
@@ -27,15 +27,14 @@ const AddMovieForm = () => {
 
   const [formData, setFormData] = useState({
     title: "",
-    theaterId: "",
     description: "",
     genre: "",
-    format: "",
     duration: "",
     language: "",
     rating: "",
     director: "",
     castMember: "",
+    crewMember: "",
     releaseDate: "",
     trailer: "",
     image:"",
@@ -53,40 +52,85 @@ const AddMovieForm = () => {
 
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-      const payload = new FormData();
-      
-      Object.keys(formData).forEach(key => {
-        payload.append(key, formData[key]);
-      });
+  try {
+    const payload = new FormData();
 
-      // payload.append("image", formData.image);
-      // payload.append("backgroundImage", formData.backgroundImage);
+    // Prepare movie JSON object (without files)
+    const movieData = {
+      title: formData.title,
+      description: formData.description,
+      genre: formData.genre,
+      duration: formData.duration,
+      language: formData.language,
+      rating: parseFloat(formData.rating),
+      director: formData.director,
+      releaseDate: formData.releaseDate,
+      trailer: formData.trailer,
+      featured: false, // Default value for new movies
 
-      const response = await axios.post(`http://localhost:1111/api/movie/createMovie`, payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          "Content-Type": "multipart/form-data",
-          
+      // Convert cast string to array of Person objects
+      castMember: (() => {
+        try {
+          // Try parsing as JSON first
+          const parsed = JSON.parse(formData.castMember);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          // Fallback: treat as comma-separated names without images
+          return formData.castMember
+            .split(",")
+            .map(name => ({ name: name.trim(), imageUrl: null }))
+            .filter(person => person.name);
         }
-      })
+      })(),
+      
+      // Convert crew string to array of Person objects
+      crewMember: (() => {
+        try {
+          // Try parsing as JSON first
+          const parsed = JSON.parse(formData.crewMember);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          // Fallback: treat as comma-separated names without images
+          return formData.crewMember
+            .split(",")
+            .map(name => ({ name: name.trim(), imageUrl: null }))
+            .filter(person => person.name);
+        }
+      })()
+    };
 
-      if (response.status === 201) {
-        alert("Data saved successfully!");
-      } else {
-        alert("Failed to save data.");
-      }
+    // Append JSON as string
+    payload.append("movie", JSON.stringify(movieData));
 
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false)
+    // Append files separately
+    if (formData.image) {
+      payload.append("image", formData.image);
     }
-  };
+
+    if (formData.backgroundImage) {
+      payload.append("backgroundImage", formData.backgroundImage);
+    }
+
+    const response = await myAxios.post(
+      `/movie/createMovie`,
+      payload
+    );
+
+    if (response.status === 201) {
+      alert("Movie created successfully!");
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to create movie");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
 
@@ -108,15 +152,6 @@ const AddMovieForm = () => {
             className="w-full p-2 border rounded-md focus:outline-none"
             required
           />
-          <input
-            type="text"
-            name="theaterId"
-            value={formData.theaterId}
-            onChange={handleChange}
-            placeholder="Theater Id"
-            className="w-full p-2 border rounded-md focus:outline-none"
-            required
-          />
 
           <input
             type="text"
@@ -124,15 +159,6 @@ const AddMovieForm = () => {
             value={formData.genre}
             onChange={handleChange}
             placeholder="Genre"
-            className="w-full p-2 border rounded-md focus:outline-none"
-            required
-          />
-          <input
-            type="text"
-            name="format"
-            value={formData.format}
-            onChange={handleChange}
-            placeholder="Format"
             className="w-full p-2 border rounded-md focus:outline-none"
             required
           />
@@ -176,13 +202,20 @@ const AddMovieForm = () => {
             className="w-full p-2 border rounded-md focus:outline-none"
             required
           />
-          <input
-            type="text"
+          <textarea
             name="castMember"
             value={formData.castMember}
             onChange={handleChange}
-            placeholder="Cast Member"
-            className="w-full p-2 border rounded-md focus:outline-none"
+            placeholder='Cast with images (JSON): [{"name":"Akshay Kumar","imageUrl":"https://..."},{"name":"Vaani Kapoor","imageUrl":"https://..."}] OR simple names: Akshay Kumar, Vaani Kapoor'
+            className="w-full p-2 border rounded-md focus:outline-none resize-y min-h-[60px]"
+            required
+          />
+          <textarea
+            name="crewMember"
+            value={formData.crewMember}
+            onChange={handleChange}
+            placeholder='Crew with images (JSON): [{"name":"Director Name","imageUrl":"https://..."}] OR simple names: Director, Producer'
+            className="w-full p-2 border rounded-md focus:outline-none resize-y min-h-[60px]"
             required
           />
           <input
@@ -190,7 +223,7 @@ const AddMovieForm = () => {
             name="trailer"
             value={formData.trailer}
             onChange={handleChange}
-            placeholder="Trailer"
+            placeholder="Trailer URL"
             className="w-full p-2 border rounded-md focus:outline-none"
             required
           />

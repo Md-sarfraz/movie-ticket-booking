@@ -4,30 +4,19 @@ import Banner from '../components/banner';
 import { Calendar, Search, Filter, MapPin } from 'lucide-react';
 import EventSlider from '@/components/eventSlider';
 import PaginationDesign from '@/components/paginationDesign';
-import axios from 'axios';
+import { myAxios } from '@/services/helper';
 import { useNavigate } from 'react-router-dom';
 
 const Event = () => {
-
-
     const [events, setEvents] = useState([]);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9; // Show 9 events per page (3x3 grid)
 
     const fetchEvents = async () => {
         try {
-            const token = localStorage.getItem("token");
-            console.log("token is", token);
-
-            if (!token) {
-                console.error("No token found, user might not be logged in.");
-                return;
-            }
-
-            const response = await axios.get("http://localhost:1111/api/events/findAll", {
-
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await myAxios.get("/events/findAll");
             
             if (response.status !== 200) {
                 throw new Error("Failed to fetch events");
@@ -54,6 +43,18 @@ const Event = () => {
             }
         })
     }
+
+    // Pagination logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentEvents = events.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(events.length / itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        // Scroll to events section
+        window.scrollTo({ top: 600, behavior: 'smooth' });
+    };
 
 
 
@@ -163,8 +164,8 @@ const Event = () => {
 
                     {/* Events Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {Array.isArray(events) && events.length > 0 ? (
-                            events.map((event) => (
+                        {Array.isArray(currentEvents) && currentEvents.length > 0 ? (
+                            currentEvents.map((event) => (
                                 <div
                                     key={event.id}
                                     className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105"
@@ -204,11 +205,16 @@ const Event = () => {
                             <p className="text-gray-600">Loading Events...</p>
                         )}
                     </div>
-
                 </section>
 
-                {/* Pagination */}
-                <PaginationDesign />
+                {/* Pagination - only show if there are events and multiple pages */}
+                {events.length > 0 && totalPages > 1 && (
+                    <PaginationDesign 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
+                )}
             </div>
         </div>
     );

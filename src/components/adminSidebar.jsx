@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaUsers, FaFilm, FaChartBar, FaCog, FaSignOutAlt, FaBuilding, FaTachometerAlt, FaTicketAlt } from 'react-icons/fa';
+import { FaUsers, FaFilm, FaChartBar, FaCog, FaSignOutAlt, FaBuilding, FaTachometerAlt, FaTicketAlt, FaClock } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
@@ -92,6 +92,20 @@ const AdminSidebar = () => {
             >
               <FaBuilding size={18} className={isActive("/theaterList") || activeItem === "theaterList" ? "text-red-500" : "text-gray-500"} />
               <span>Manage Theaters</span>
+            </button>
+          </li>
+          
+          <li>
+            <button
+              onClick={() => handleNavigation("showList")}
+              className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
+                isActive("/showList") || activeItem === "showList"
+                  ? "bg-red-100 text-red-600 font-medium" 
+                  : "text-gray-700 hover:bg-gray-50 active:bg-red-50"
+              }`}
+            >
+              <FaClock size={18} className={isActive("/showList") || activeItem === "showList" ? "text-red-500" : "text-gray-500"} />
+              <span>Manage Shows</span>
             </button>
           </li>
           

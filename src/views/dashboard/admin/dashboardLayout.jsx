@@ -6,6 +6,9 @@ import MovieList from '../admin/movieList'
 import TheaterList from '../admin/theaterLIst'
 import UserProfile from '../user/userProfile'
 import UserList from './userList'
+import AddShowForm from '../../../components/addShowForm'
+import AddMoviePage from './addMoviePage'
+import AddTheaterPage from './addTheaterPage'
 
 
 const DashboardLayout = () => {
@@ -19,8 +22,11 @@ const DashboardLayout = () => {
                     <Route path='/' element={<Dashboard/>}/>
                     <Route path='/dashboard' element={<Dashboard/>}/>
                     <Route path='/movieList' element={<MovieList/>}/>
+                    <Route path='/addMovie' element={<AddMoviePage/>}/>
                     <Route path='/userList' element={<UserList/>}/>
                     <Route path='/theaterList' element={<TheaterList/>}/>
+                    <Route path='/addTheater' element={<AddTheaterPage/>}/>
+                    <Route path='/showList' element={<AddShowForm/>}/>
                     <Route path='/userProfile' element={<UserProfile/>}/>
                 </Routes>
             </div>

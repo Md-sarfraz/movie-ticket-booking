@@ -1,278 +1,552 @@
-import React, { useState } from "react";
-import { Check, X, Ticket, CreditCard } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Check, X, Ticket, CreditCard, Film, Calendar, Clock, MapPin, Monitor, ChevronLeft, Users, IndianRupee } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [hoveredSeat, setHoveredSeat] = useState(null);
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Get movie data from location state
-  const location = useLocation();
-  const movie = location.state?.data || { 
-    title: "Movie Title", 
-    price: 12.99, 
-    showtime: "Today, 7:30 PM",
-    format: "Standard"
-  };
-  
-  // Use movie price from the passed state, ensure it's a number
-  const seatPrice = typeof movie.price === 'number' ? movie.price : parseFloat(movie.price) || 12.99;
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
-  // Creating a theater layout with rows labeled A-L
-  const rowLabels = "ABCDEFGHIJKL".split("");
+  // Get booking data from location state
+  const location = useLocation();
+  const { movie, show, theater, time, date } = location.state || {};
   
-  // Seat layout with patterns of taken seats
-  const seats = [
-    ["available", "available", "available", "taken", "taken", "taken", "aisle", "available", "available", "available", "taken", "available", "available"],
-    ["taken", "available", "taken", "taken", "available", "available", "aisle", "available", "taken", "available", "available", "available", "available"],
-    ["available", "available", "available", "available", "available", "available", "aisle", "available", "available", "taken", "available", "available", "available"],
-    ["taken", "taken", "available", "available", "available", "available", "aisle", "taken", "taken", "taken", "available", "available", "available"],
-    ["available", "taken", "available", "available", "taken", "taken", "aisle", "taken", "available", "taken", "taken", "available", "available"],
-    ["available", "available", "taken", "taken", "taken", "available", "aisle", "taken", "available", "available", "available", "available", "taken"],
-    ["available", "taken", "available", "available", "taken", "taken", "aisle", "available", "available", "taken", "available", "taken", "available"],
-    ["available", "available", "available", "taken", "taken", "available", "aisle", "taken", "taken", "available", "available", "available", "available"],
-    ["taken", "available", "taken", "available", "taken", "available", "aisle", "available", "available", "taken", "taken", "taken", "taken"],
-    ["available", "available", "taken", "taken", "available", "available", "aisle", "available", "available", "available", "available", "available", "available"],
-    ["available", "available", "available", "available", "available", "taken", "aisle", "taken", "taken", "available", "available", "taken", "available"],
-    ["available", "taken", "available", "taken", "available", "available", "aisle", "available", "taken", "available", "taken", "available", "available"]
-  ];
+  // Redirect if no booking data
+  useEffect(() => {
+    if (!movie || !show || !theater) {
+      navigate('/movies');
+    }
+  }, [movie, show, theater, navigate]);
+
+  // Seat price from show data
+  const seatPrice = show?.price || 0;
+
+  // Creating a dynamic theater layout with rows labeled A-L
+  const rowLabels = "ABCDEFGHIJKL".split("");
+  const seatsPerRow = 14; // 6 left + aisle + 7 right
+  
+  // Fetch booked seats from backend
+  useEffect(() => {
+    const fetchBookedSeats = async () => {
+      if (!show?.showId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/bookings/show/${show.showId}/booked-seats`
+        );
+        
+        // Expected format: ["A1", "A2", "B5", etc.]
+        setBookedSeats(response.data || []);
+      } catch (error) {
+        console.error("Error fetching booked seats:", error);
+        // Generate sample booked seats for demo
+        const sampleBooked = [];
+        for (let i = 0; i < rowLabels.length; i++) {
+          const randomSeats = Math.floor(Math.random() * 5) + 2;
+          for (let j = 0; j < randomSeats; j++) {
+            const seatNum = Math.floor(Math.random() * seatsPerRow) + 1;
+            sampleBooked.push(`${rowLabels[i]}${seatNum}`);
+          }
+        }
+        setBookedSeats(sampleBooked);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookedSeats();
+  }, [show?.showId]);
+
+  // Get seat label for a given position
+  const getSeatLabel = (rowIndex, seatIndex) => {
+    // Account for aisle at column 6
+    const seatNum = seatIndex >= 7 ? seatIndex : seatIndex + 1;
+    return `${rowLabels[rowIndex]}${seatNum}`;
+  };
+
+  // Check if a seat is booked
+  const isSeatBooked = (rowIndex, seatIndex) => {
+    const label = getSeatLabel(rowIndex, seatIndex);
+    return bookedSeats.includes(label);
+  };
+
+  // Check if a seat is selected
+  const isSeatSelected = (rowIndex, seatIndex) => {
+    return selectedSeats.some(
+      (seat) => seat.row === rowIndex && seat.index === seatIndex
+    );
+  };
 
   // Handle seat selection
   const handleSeatClick = (rowIndex, seatIndex) => {
-    const isSelected = selectedSeats.some(
-      (seat) => seat.row === rowIndex && seat.index === seatIndex
-    );
+    if (isSeatBooked(rowIndex, seatIndex)) return;
+
+    const isSelected = isSeatSelected(rowIndex, seatIndex);
+    const seatLabel = getSeatLabel(rowIndex, seatIndex);
 
     setSelectedSeats((prevSeats) =>
       isSelected
         ? prevSeats.filter(
             (seat) => seat.row !== rowIndex || seat.index !== seatIndex
           )
-        : [...prevSeats, { row: rowIndex, index: seatIndex, price: seatPrice }]
+        : [...prevSeats, { row: rowIndex, index: seatIndex, label: seatLabel, price: seatPrice }]
     );
   };
 
-  // Get seat number (combine row letter with seat number)
-  const getSeatLabel = (rowIndex, seatIndex) => {
-    // adjust seat number for the aisle in column 6
-    const realSeatIndex = seatIndex >= 6 ? seatIndex : seatIndex + 1;
-    return `${rowLabels[rowIndex]}${realSeatIndex}`;
+  /**
+   * Industry-standard Razorpay payment flow:
+   * 1. Backend creates order (amount computed server-side, tamper-proof)
+   * 2. Frontend opens Razorpay modal with server's order_id
+   * 3. On success, backend verifies HMAC-SHA256 signature (secret key never leaves server)
+   * 4. Backend confirms booking in DB and returns booking details
+   */
+  const handlePayment = async () => {
+    if (selectedSeats.length === 0) return;
+    setPaymentLoading(true);
+
+    try {
+      // ── STEP 1: Create order on backend (amount calculated server-side) ──
+      const orderRes = await axios.post('http://localhost:8080/api/v1/payment/create-order', {
+        showId: show?.showId,
+        seatLabels: selectedSeats.map(s => s.label),
+        userId: null // pass userId here if your app has auth
+      });
+
+      const { razorpayOrderId, amountInPaise, currency, keyId, bookingId, bookingReference } = orderRes.data;
+
+      // ── STEP 2: Open Razorpay modal with server's order_id ──
+      if (!window.Razorpay) {
+        alert('Razorpay SDK not loaded. Please check your internet connection.');
+        setPaymentLoading(false);
+        return;
+      }
+
+      const options = {
+        key: keyId,                        // public key returned by backend
+        amount: amountInPaise,             // in paise, from server
+        currency: currency,
+        order_id: razorpayOrderId,         // server-side order id (crucial)
+        name: 'BookShow',
+        description: `Booking for ${movie?.title}`,
+        image: movie?.postUrl || '',
+        handler: async function (response) {
+          // ── STEP 3: Send payment details to backend for signature verification ──
+          try {
+            const verifyRes = await axios.post('http://localhost:8080/api/v1/payment/verify', {
+              razorpayOrderId:   response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
+            });
+
+            // ── STEP 4: Signature valid → booking confirmed in DB → navigate ──
+            const confirmed = verifyRes.data;
+            navigate('/ticketPage', {
+              state: {
+                movie,
+                show,
+                theater,
+                time,
+                date,
+                seats:           confirmed.seatLabels?.split(',') || [],
+                seatLabels:      confirmed.seatLabels?.split(',') || [],
+                totalPrice:      confirmed.totalAmount,
+                basePrice:       confirmed.baseAmount,
+                convenienceFee:  confirmed.convenienceFee,
+                discount:        confirmed.discount || 0,
+                bookingId:       confirmed.bookingReference,
+                paymentId:       confirmed.razorpayPaymentId,
+              }
+            });
+          } catch (verifyErr) {
+            console.error('Payment verification failed:', verifyErr);
+            alert('Payment verification failed. Please contact support with your payment ID: '
+              + response.razorpay_payment_id);
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+        prefill: { name: '', email: '', contact: '' },
+        notes: {
+          movie:    movie?.title,
+          theater:  theater?.name,
+          seats:    selectedSeats.map(s => s.label).join(', '),
+          showDate: date,
+          showTime: time
+        },
+        theme: { color: '#f97316' },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment cancelled by user');
+            setPaymentLoading(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        alert(`Payment Failed: ${response.error.description || 'Something went wrong'}`);
+        setPaymentLoading(false);
+      });
+      razorpay.open();
+
+    } catch (err) {
+      console.error('Error initiating payment:', err);
+      const msg = err?.response?.data?.error || err.message || 'Failed to initiate payment';
+      alert(`Error: ${msg}`);
+      setPaymentLoading(false);
+    }
   };
 
-  // Calculate total price - ensure we're returning a number
+  // Calculate total price
   const calculateTotal = () => {
-    if (selectedSeats.length === 0) return 0;
-    
-    const total = selectedSeats.reduce((sum, seat) => {
-      const price = typeof seat.price === 'number' ? seat.price : parseFloat(seat.price) || 0;
-      return sum + price;
-    }, 0);
-    
-    return total;
+    return selectedSeats.length * seatPrice;
   };
 
-  // Format price for display
-  const formatPrice = (price) => {
-    return price.toFixed(2);
+  // Get availability stats
+  const getAvailabilityStats = () => {
+    const total = rowLabels.length * (seatsPerRow - 1); // -1 for aisle
+    const booked = bookedSeats.length;
+    const available = total - booked - selectedSeats.length;
+    return { total, booked, available, selected: selectedSeats.length };
   };
+
+  const stats = getAvailabilityStats();
+
+  // Debug: Log movie data to check image URLs
+  useEffect(() => {
+    if (movie) {
+      console.log("Movie data in seatSelection:", movie);
+      console.log("postUrl:", movie.postUrl);
+      console.log("backgroundImageUrl:", movie.backgroundImageUrl);
+    }
+  }, [movie]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading seats...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!movie || !show) {
+    return null;
+  }
+
+  // Construct proper image URLs
+  const posterUrl = movie.postUrl || movie.imageUrl || 'https://via.placeholder.com/400x600?text=No+Poster';
+  const backgroundUrl = movie.backgroundImageUrl || movie.bannerUrl || movie.postUrl || 'https://via.placeholder.com/1920x1080?text=Background';
 
   return (
-    <div className="bg-white rounded-xl shadow-xl overflow-hidden min-h-screen md:min-h-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-700 to-blue-900 p-3 md:p-4 text-white">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-          <div>
-            <h1 className="text-lg md:text-2xl font-bold">Select Your Seats</h1>
-            <p className="text-blue-100 text-sm md:text-base">{movie.title} - {movie.format || 'Standard'} • {movie.showtime || 'Today, 7:30 PM'}</p>
-          </div>
-          <div className="bg-blue-800 px-3 md:px-4 py-2 rounded-lg">
-            <p className="text-sm md:text-lg font-bold">Price: ${formatPrice(seatPrice)} per seat</p>
+    <div className="min-h-screen bg-gray-50 pt-20 pb-6">
+      {/* Movie Banner Header */}
+      <div className="relative w-full h-40 md:h-52 mb-4 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-gray-900"
+          style={{
+            backgroundImage: `url('${backgroundUrl}')`,
+            filter: 'blur(8px) brightness(0.4)',
+            transform: 'scale(1.1)'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
+        
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-2 left-4 p-1.5 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
+          >
+            <ChevronLeft size={24} className="text-white" />
+          </button>
+
+          <div className="flex items-center gap-4 mt-4">
+            {/* Movie Poster */}
+            <img
+              src={posterUrl}
+              alt={movie.title}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/400x600?text=No+Poster';
+              }}
+              className="w-20 h-28 md:w-28 md:h-40 object-cover rounded-lg shadow-2xl ring-2 ring-red-500/50"
+            />
+
+            {/* Movie Info */}
+            <div className="text-white">
+              <h1 className="text-xl md:text-2xl font-bold mb-2 drop-shadow-lg">
+                {movie.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 mb-2 text-xs md:text-sm">
+                <span className="flex items-center gap-1">
+                  <span className="text-yellow-400">★</span>
+                  {movie.rating}/10
+                </span>
+                <span>•</span>
+                <span>{movie.duration || '2h 36min'}</span>
+                <span>•</span>
+                <span>{movie.genre || 'Action/Drama'}</span>
+              </div>
+              <div className="space-y-1 text-xs md:text-sm">
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-red-400" />
+                  <span>{theater?.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Calendar size={14} className="text-red-400" />
+                    <span>{new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <Clock size={14} className="text-red-400" />
+                    <span>{time}</span>
+                  </div>
+                  {show?.screenNumber && (
+                    <>
+                      <span>•</span>
+                      <span>{show.screenNumber}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="p-3 md:p-6">
-        {/* Screen */}
-        <div className="mb-6 md:mb-8">
-          <div className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 w-full h-6 md:h-8 mb-1 text-center text-white flex items-center justify-center rounded-md shadow-md text-sm md:text-base">
-            SCREEN
-          </div>
-          <div className="h-8 md:h-12 w-full bg-gradient-to-b from-gray-300 opacity-40"></div>
-        </div>
-
-        {/* Horizontal Layout - Full Width */}
-        <div className="w-full flex justify-center mb-4 md:mb-6">
-          <div className="flex overflow-x-auto max-w-full">
-            {/* Row labels column */}
-            <div className="flex flex-col space-y-1 pr-1 md:pr-2 flex-shrink-0">
-              {rowLabels.map((label, index) => (
-                <div key={`label-${index}`} className="h-6 w-6 md:h-8 md:w-8 flex items-center justify-center font-bold text-gray-600 text-xs md:text-sm">
-                  {label}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Seat Selection Area */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-xl shadow-lg p-3 md:p-4">
+              {/* All eyes this way please! */}
+              <div className="text-center mb-4">
+                <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-3">
+                  All eyes this way please!
+                </h2>
+                
+                {/* Screen */}
+                <div className="mb-4">
+                  <div className="relative">
+                    <div className="w-full max-w-4xl mx-auto h-1.5 bg-gradient-to-r from-transparent via-gray-700 to-transparent rounded-full mb-2"></div>
+                    <p className="text-center text-gray-500 text-xs font-medium uppercase tracking-wide">Screen</p>
+                  </div>
                 </div>
-              ))}
-            </div>
-            
-            {/* Seats grid - using full available width */}
-            <div className="flex">
-              {seats[0].map((_, colIndex) => (
-                colIndex === 6 ? (
-                  // Aisle column
-                  <div key={`aisle-${colIndex}`} className="flex flex-col space-y-1 mx-1 md:mx-2 flex-shrink-0">
-                    {seats.map((_, rowIndex) => (
-                      <div key={`aisle-${rowIndex}`} className="h-6 md:h-8 flex items-center justify-center text-gray-400">
-                        •
+              </div>
+
+              {/* Seat Grid */}
+              <div className="overflow-x-auto pb-2">
+                <div className="min-w-max mx-auto">
+                  {rowLabels.map((row, rowIndex) => (
+                    <div key={row} className="flex items-center justify-center gap-0.5 md:gap-1 mb-1">
+                      {/* Row Label - Left */}
+                      <div className="w-4 md:w-6 text-center font-bold text-gray-500 text-[10px] md:text-xs">
+                        {row}
                       </div>
+
+                      {/* Seats */}
+                      {Array.from({ length: seatsPerRow }).map((_, seatIndex) => {
+                        // Aisle at index 6
+                        if (seatIndex === 6) {
+                          return (
+                            <div 
+                              key={`aisle-${rowIndex}-${seatIndex}`} 
+                              className="w-3 md:w-6 flex items-center justify-center"
+                            >
+                              <div className="text-gray-300 text-xs">••</div>
+                            </div>
+                          );
+                        }
+
+                        const isBooked = isSeatBooked(rowIndex, seatIndex);
+                        const isSelected = isSeatSelected(rowIndex, seatIndex);
+                        const seatLabel = getSeatLabel(rowIndex, seatIndex);
+
+                        return (
+                          <button
+                            key={`${rowIndex}-${seatIndex}`}
+                            onClick={() => handleSeatClick(rowIndex, seatIndex)}
+                            onMouseEnter={() => setHoveredSeat({ row: rowIndex, index: seatIndex })}
+                            onMouseLeave={() => setHoveredSeat(null)}
+                            disabled={isBooked}
+                            className={`
+                              w-6 h-6 md:w-8 md:h-8 rounded-md font-medium text-xs transition-all duration-200 flex items-center justify-center
+                              ${isBooked
+                                ? 'bg-gray-300 cursor-not-allowed'
+                                : isSelected
+                                ? 'bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 shadow-md'
+                                : 'bg-emerald-500 hover:bg-emerald-600 shadow-sm'
+                              }
+                            `}
+                          >
+                          </button>
+                        );
+                      })}
+
+                      {/* Row Label - Right */}
+                      <div className="w-4 md:w-6 text-center font-bold text-gray-500 text-[10px] md:text-xs">
+                        {row}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-emerald-500 rounded-md shadow-sm"></div>
+                  <span className="text-xs text-gray-700 font-medium">Available</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-gray-300 rounded-md"></div>
+                  <span className="text-xs text-gray-700 font-medium">Booked</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-md shadow-md"></div>
+                  <span className="text-xs text-gray-700 font-medium">Selected</span>
+                </div>
+              </div>
+
+              {/* Hover info */}
+              {hoveredSeat && !isSeatBooked(hoveredSeat.row, hoveredSeat.index) && (
+                <div className="text-center mt-3 px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
+                  <span className="text-sm font-medium text-gray-700">
+                    Seat {getSeatLabel(hoveredSeat.row, hoveredSeat.index)} - ₹{seatPrice}
+                    {isSeatSelected(hoveredSeat.row, hoveredSeat.index) ? " (Selected)" : " (Available)"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Booking Summary Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-4 md:p-5 sticky top-24">
+              <h2 className="text-base font-bold text-gray-800 mb-3">
+                Your selected seats
+              </h2>
+
+              {/* Selected Seats Badges */}
+              <div className="mb-4">
+                {selectedSeats.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {selectedSeats.map((seat) => (
+                      <span
+                        key={`badge-${seat.row}-${seat.index}`}
+                        className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm"
+                      >
+                        {seat.label}
+                      </span>
                     ))}
                   </div>
                 ) : (
-                  // Regular seat column
-                  <div key={`col-${colIndex}`} className="flex flex-col space-y-1">
-                    {seats.map((row, rowIndex) => (
-                      <button
-                        key={`${rowIndex}-${colIndex}`}
-                        className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-md transition duration-200 ${
-                          row[colIndex] === "taken"
-                            ? "bg-gray-200 text-gray-400 cursor-not-allowed" // Taken seat
-                            : selectedSeats.some(
-                                (s) => s.row === rowIndex && s.index === colIndex
-                              )
-                            ? "bg-blue-600 text-white hover:bg-blue-700" // Selected seat
-                            : "bg-white border border-gray-300 hover:bg-blue-100 hover:border-blue-300" // Available seat
-                        }`}
-                        disabled={row[colIndex] === "taken"}
-                        onClick={() => handleSeatClick(rowIndex, colIndex)}
-                        onMouseEnter={() => setHoveredSeat({ row: rowIndex, index: colIndex })}
-                        onMouseLeave={() => setHoveredSeat(null)}
-                      >
-                        {row[colIndex] === "taken" ? (
-                          <X size={10} className="md:hidden" />
-                        ) : selectedSeats.some(
-                            (s) => s.row === rowIndex && s.index === colIndex
-                          ) ? (
-                          <Check size={10} className="md:hidden" />
-                        ) : (
-                          ""
-                        )}
-                        {row[colIndex] === "taken" ? (
-                          <X size={14} className="hidden md:block" />
-                        ) : selectedSeats.some(
-                            (s) => s.row === rowIndex && s.index === colIndex
-                          ) ? (
-                          <Check size={14} className="hidden md:block" />
-                        ) : (
-                          ""
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )
-              ))}
-            </div>
-            
-            {/* Row labels column (right side) */}
-            <div className="flex flex-col space-y-1 pl-1 md:pl-2 flex-shrink-0">
-              {rowLabels.map((label, index) => (
-                <div key={`right-label-${index}`} className="h-6 w-6 md:h-8 md:w-8 flex items-center justify-center font-bold text-gray-600 text-xs md:text-sm">
-                  {label}
-                </div>
-              ))}
-            </div>
-          </div>mm
-        </div>
-
-        {/* Hover info */}
-        {hoveredSeat && seats[hoveredSeat.row][hoveredSeat.index] !== "taken" && (
-          <div className="text-center mb-4 text-xs md:text-sm px-3 md:px-4 py-2 bg-gray-50 rounded-lg">
-            <span className="font-medium">
-              Seat {getSeatLabel(hoveredSeat.row, hoveredSeat.index)} - ${formatPrice(seatPrice)}
-              {selectedSeats.some(s => s.row === hoveredSeat.row && s.index === hoveredSeat.index) ? " (Selected)" : " (Available)"}
-            </span>
-          </div>
-        )}
-
-        {/* Combined Information Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Legend */}
-          <div className="flex items-center justify-center flex-wrap gap-2 md:gap-4 p-3 md:p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center">
-              <div className="w-5 h-5 md:w-6 md:h-6 bg-blue-600 rounded-md flex items-center justify-center text-white mr-2">
-                <Check size={10} className="md:hidden" />
-                <Check size={14} className="hidden md:block" />
+                  <p className="text-gray-400 text-xs mb-3">No seats selected</p>
+                )}
               </div>
-              <p className="text-xs md:text-sm">Selected</p>
-            </div>
-            <div className="flex items-center">
-              <div className="w-5 h-5 md:w-6 md:h-6 bg-white rounded-md border border-gray-300 mr-2"></div>
-              <p className="text-xs md:text-sm">Available</p>
-            </div>
-            <div className="flex items-center">
-              <div className="w-5 h-5 md:w-6 md:h-6 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 mr-2">
-                <X size={10} className="md:hidden" />
-                <X size={14} className="hidden md:block" />
-              </div>
-              <p className="text-xs md:text-sm">Taken</p>
-            </div>
-          </div>
 
-          {/* Selection summary */}
-          <div className="lg:col-span-2 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="flex items-center mb-2">
-              <Ticket size={16} className="md:hidden text-blue-600 mr-2" />
-              <Ticket size={18} className="hidden md:block text-blue-600 mr-2" />
-              <h3 className="font-bold text-sm md:text-base">Selected Seats</h3>
-            </div>
-            
-            {selectedSeats.length > 0 ? (
-              <div>
-                <div className="flex flex-wrap gap-1 md:gap-2 mb-3">
-                  {selectedSeats.map((seat) => (
-                    <span key={`selected-${seat.row}-${seat.index}`} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs md:text-sm">
-                      {getSeatLabel(seat.row, seat.index)}
+              {/* Price Breakdown */}
+              {selectedSeats.length > 0 && (
+                <div className="space-y-2.5 mb-4">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">
+                      {show?.category || 'First Class'} ({selectedSeats.length} Ticket{selectedSeats.length > 1 ? 's' : ''})
                     </span>
-                  ))}
+                    <span className="font-semibold text-gray-800">
+                      {calculateTotal()}.00
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">Convenience Fess</span>
+                    <span className="font-semibold text-gray-800">
+                      {(calculateTotal() * 0.1).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-emerald-600">
+                    <span>Get 18%</span>
+                    <span className="font-semibold">
+                      {(calculateTotal() * 0.18).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="pt-2.5 border-t-2 border-dashed border-gray-300">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-gray-800">Grant Total</span>
+                      <span className="text-base font-bold text-gray-800">
+                        Rs. {(calculateTotal() + calculateTotal() * 0.1 - calculateTotal() * 0.18).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-2 border-t border-blue-200 gap-1">
-                  <span className="font-medium text-sm md:text-base">{selectedSeats.length} × ${formatPrice(seatPrice)}</span>
-                  <span className="font-bold text-sm md:text-base">Total: ${formatPrice(calculateTotal())}</span>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={handlePayment}
+                  disabled={selectedSeats.length === 0 || paymentLoading}
+                  className={`
+                    w-full py-3 rounded-xl font-bold text-white text-sm transition-all duration-300 flex items-center justify-center gap-2
+                    ${selectedSeats.length > 0 && !paymentLoading
+                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+                      : 'bg-gray-300 cursor-not-allowed'
+                    }
+                  `}
+                >
+                  {paymentLoading
+                    ? ( <><svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Processing...</> )
+                    : selectedSeats.length > 0
+                      ? `Pay Rs.${(calculateTotal() + calculateTotal() * 0.1 - calculateTotal() * 0.18).toFixed(2)}`
+                      : 'Select Seats to Continue'
+                  }
+                </button>
+
+                {selectedSeats.length > 0 && (
+                  <button
+                    onClick={() => setSelectedSeats([])}
+                    className="w-full py-2 rounded-xl font-medium text-gray-600 text-sm border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                  >
+                    Clear Selection
+                  </button>
+                )}
+              </div>
+
+              {/* Availability Info */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>{stats.available} available</span>
+                  <span>{stats.booked} booked</span>
+                  <span>{stats.selected} selected</span>
                 </div>
               </div>
-            ) : (
-              <p className="text-gray-600 text-xs md:text-sm">No seats selected yet</p>
-            )}
+            </div>
           </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between">
-          <button 
-            className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100 transition-colors text-sm md:text-base"
-            onClick={() => setSelectedSeats([])}
-          >
-            Clear Selection
-          </button>
-          
-          <button 
-            className={`flex items-center justify-center gap-2 px-4 md:px-6 py-2 rounded shadow text-white transition-colors text-sm md:text-base ${
-              selectedSeats.length > 0 ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-            }`}
-            disabled={selectedSeats.length === 0}
-            onClick={() => {
-              // Pass selected seats and movie data to the payment page
-              navigate('/paymentPage', { 
-                state: { 
-                  seats: selectedSeats,
-                  movie: movie,
-                  totalPrice: calculateTotal(),
-                  seatLabels: selectedSeats.map(seat => getSeatLabel(seat.row, seat.index))
-                } 
-              });
-            }}
-            
-          >
-            Checkout <CreditCard size={14} className="md:hidden" />
-            <CreditCard size={16} className="hidden md:block" />
-          </button>
         </div>
       </div>
     </div>

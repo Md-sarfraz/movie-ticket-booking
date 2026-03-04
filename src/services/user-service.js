@@ -1,7 +1,7 @@
 // import axios from "axios";
 import { myAxios } from "./helper";
 export const signup=async(user)=>{
-    return myAxios.post('/api/auth/register',user)
+    return myAxios.post('/auth/register',user)
     .then((response)=>response.data)
     // try{
     //     const response=await axios.post('http://localhost:9090/api/auth/register',user);
@@ -16,19 +16,20 @@ export const signup=async(user)=>{
    
 }
 export const login=async(loginDetail)=>{
-    return myAxios.post('api/auth/login',loginDetail).then((response)=>response.data);
+    return myAxios.post('/auth/login',loginDetail).then((response)=>response.data);
 }
 
 export const updloadImage =async (image,userId)=> {
-    return myAxios.post(`/api/user/public/uploadImg/{id}`)
+    return myAxios.post(`/user/public/uploadImg/{id}`)
 }
 
 // Fetch all users (admin function)
 export const getAllUsers = async () => {
-    return myAxios.get('/api/user/findAll')
+    return myAxios.get('/user/findAll')
         .then((response) => {
             console.log('API Response:', response.data);
-            return response.data;
+            // Extract data from ApiResponse wrapper
+            return response.data.data || response.data;
         })
         .catch((error) => {
             console.error('API Error Details:', error.response);
@@ -39,10 +40,19 @@ export const getAllUsers = async () => {
 
 // Delete user (admin function)
 export const deleteUser = async (userId) => {
-    return myAxios.delete(`/api/user/${userId}`);
+    return myAxios.delete(`/user/delete/${userId}`)
+        .then((response) => {
+            console.log('Delete response:', response.data);
+            return response.data;
+        });
 }
 
-// Update user status (admin function)
+// Update user status (admin function) - Currently using update endpoint
 export const updateUserStatus = async (userId, status) => {
-    return myAxios.patch(`/api/user/${userId}/status`, { status });
+    return myAxios.patch(`/user/update`, { 
+        status: status 
+    })
+    .then((response) => {
+        return response.data;
+    });
 }

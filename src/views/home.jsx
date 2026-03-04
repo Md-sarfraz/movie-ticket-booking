@@ -1,153 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Slider from '../components/slider';
 import Slider2 from '../components/slider2';
 import ServiceCard from '../components/serviceCard.jsx';
 import CardSlider from '../components/cardSlider.jsx';
+import { getTopRatedMovies, getTrendingMovies, getPopularMovies } from '../services/movie-service';
+import { BASE_URL } from '../services/helper';
 
 const Home = () => {
-  const topFeatureArr = [
-    { image: 'feature-img9.jpg', title: '8.9/10', movieName: 'THE FAIL GUY' },
-    { image: 'feature-img8.jpg', title: '8.9/10', movieName: 'ALL OF US STRANGERS' },
-    { image: 'feature-img7.jpg', title: '8.9/10', movieName: 'FURIOSA' },
-    { image: 'feature-img6.jpg', title: '8.9/10', movieName: 'AVENGERS' },
-    { image: 'feature-img5.jpg', title: '8.9/10', movieName: 'KALKI' },
-    { image: 'feature-img4.jpg', title: '8.9/10', movieName: '12TH FAIL' },
-    { image: 'feature-img3.jpg', title: '8.9/10', movieName: 'FIGHTER' },
-    { image: 'feature-img2.jpg', title: '8.9/10', movieName: 'INDIAN 2' },
-    { image: 'feature-img1.jpg', title: '8.9/10', movieName: 'JAILER' },
-  ];
+  const [topRatedMovies, setTopRatedMovies] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const [popularMovies, setPopularMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const popularMovie = [
-    {
-      image: 'card-slider-img1.avif',
-      title: '8.9/10',
-      movieName: 'JOKER',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img2.avif',
-      title: '8.9/10',
-      movieName: 'THE BUKHINGHAM MURDERS',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img3.avif',
-      title: '8.9/10',
-      movieName: 'STREE 2',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img4.avif',
-      title: '8.9/10',
-      movieName: 'KHEL KHEL ME',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img5.avif',
-      title: '8.9/10',
-      movieName: 'VEDAA',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img6.avif',
-      title: '8.9/10',
-      movieName: 'THE GREATEST OF ALL TIME..',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img7.avif',
-      title: '8.9/10',
-      movieName: 'BEETLIJUICE BEETLIJUICE',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img8.avif',
-      title: '8.9/10',
-      movieName: 'BIBI RAJNI',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-    {
-      image: 'card-slider-img9.avif',
-      title: '8.9/10',
-      movieName: 'URANCHHU',
-      posterUrl: 'https://image-url.jpg',
-      genres: ['Adventure', 'Fantasy', 'Action'],
-      language: 'English',
-      releaseDate: 'April 27, 2018 (USA)',
-      duration: '2h 36m',
-      description:
-        'The Avengers and their allies must sacrifice all to defeat the powerful Thanos.',
-      rating: 99,
-    },
-  ];
+  // Fetch all movie data on component mount
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        setLoading(true);
+        
+        const [topRatedRes, trendingRes, popularRes] = await Promise.all([
+          getTopRatedMovies(),
+          getTrendingMovies(),
+          getPopularMovies()
+        ]);
 
-  const PopularEvents = [
-    { image: 'popular-event-img1.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img2.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img3.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img4.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img5.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img6.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img7.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img8.avif', title: '8.9/10', movieName: 'SHAAN' },
-    { image: 'popular-event-img9.avif', title: '8.9/10', movieName: 'SHAAN' },
-  ];
+        console.log('Top Rated Response:', topRatedRes);
+        console.log('Trending Response:', trendingRes);
+        console.log('Popular Response:', popularRes);
+
+        // Map API response to component-friendly format
+        const mapMovieData = (movie) => ({
+          id: movie.movieId,
+          image: movie.posterUrl ? `${BASE_URL}/uploads/${movie.posterUrl}` : 'card-slider-img1.avif',
+          title: movie.rating ? `${movie.rating}/10` : '8.0/10',
+          movieName: movie.title || movie.movieName,
+          posterUrl: movie.posterUrl ? `${BASE_URL}/uploads/${movie.posterUrl}` : '',
+          genres: movie.genres || [],
+          language: movie.language || 'English',
+          releaseDate: movie.releaseDate || '',
+          duration: movie.duration || '',
+          description: movie.description || '',
+          rating: movie.rating || 0,
+        });
+
+        setTopRatedMovies(topRatedRes.data?.map(mapMovieData) || []);
+        setTrendingMovies(trendingRes.data?.map(mapMovieData) || []);
+        setPopularMovies(popularRes.data?.map(mapMovieData) || []);
+        
+      } catch (error) {
+        console.error('Error fetching movies:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          <p className="mt-4 text-gray-600">Loading movies...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden">
@@ -192,13 +111,13 @@ const Home = () => {
           </div>
 
           <div className="w-full flex justify-center px-2">
-            <CardSlider slides={popularMovie} />
+            <CardSlider slides={popularMovies.length > 0 ? popularMovies : []} />
           </div>
 
-          {/* TOP FEATURED MOVIES */}
+          {/* TOP RATED MOVIES */}
           <div className="flex flex-col items-center pt-8 px-4">
             <p className="text-stone-400 text-xs">Watch Now</p>
-            <h1 className="text-2xl md:text-3xl font-bold">Top Featured Movies</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Top Rated Movies</h1>
           </div>
 
           <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
@@ -207,13 +126,13 @@ const Home = () => {
           </div>
 
           <div className="px-2">
-            <CardSlider slides={topFeatureArr} />
+            <CardSlider slides={topRatedMovies.length > 0 ? topRatedMovies : []} />
           </div>
 
-          {/* POPULAR EVENTS */}
+          {/* TRENDING MOVIES */}
           <div className="flex flex-col items-center pt-8 px-4">
             <p className="text-stone-400 text-xs">Watch Now</p>
-            <h1 className="text-2xl md:text-3xl font-bold">Popular Events</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Trending Movies</h1>
           </div>
 
           <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
@@ -222,7 +141,7 @@ const Home = () => {
           </div>
 
           <div className="px-2 pb-10">
-            <CardSlider slides={PopularEvents} />
+            <CardSlider slides={trendingMovies.length > 0 ? trendingMovies : []} />
           </div>
         </div>
       </div>

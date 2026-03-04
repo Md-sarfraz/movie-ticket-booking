@@ -13,6 +13,7 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const handleOnChange = (event, field) => {
     setLoginDeatail({
@@ -28,23 +29,30 @@ const LoginPage = () => {
       return;
     }
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
         email: loginDetail.email,
         password: loginDetail.password
       });
       if (response.status === 200) {
         toast.success("Login Successfully");
         console.log(response);
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        dispatch(loginRedux(response.data.user))
-        const role = response.data.user?.role;
+       const token = response.data.data.token;
+const role = response.data.data.role;
+const userData = response.data.data;
+
+localStorage.setItem("token", token);
+localStorage.setItem("role", role);
+localStorage.setItem("user", JSON.stringify(userData));
+
+dispatch(loginRedux(userData));
+
         console.log("role:",role)
-        if (role === "user") {
-          navigate("/");
-        } else if (role === 'admin') {
-          navigate("/adminDashboard");
-        }
+if (role === "USER") {
+  navigate("/");
+} else if (role === "ADMIN") {
+  navigate("/adminDashboard");
+}
+
       }
     } catch (error) {
       console.log(error);
@@ -91,13 +99,22 @@ const LoginPage = () => {
             value={setLoginDeatail.email}
             onChange={(e) => handleOnChange(e, "email")}
           />
-          <input
-            type="password"
-            placeholder="Password"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={setLoginDeatail.password}
-            onChange={(e) => handleOnChange(e, "password")}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 w-full pr-12"
+              value={setLoginDeatail.password}
+              onChange={(e) => handleOnChange(e, "password")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+            >
+              <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+            </button>
+          </div>
           <a href="#" className="text-sm text-orange-500 hover:underline text-right">
             Forgot your password?
           </a>

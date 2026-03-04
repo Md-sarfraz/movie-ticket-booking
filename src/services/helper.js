@@ -1,5 +1,5 @@
 import axios from "axios";
-export const BASE_URL='http://localhost:1111';
+export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 export const myAxios=axios.create({
     baseURL:BASE_URL
 });
@@ -45,10 +45,15 @@ myAxios.interceptors.response.use(
         console.error('❌ Error data:', error.response?.data);
         
         if (error.response?.status === 401) {
-            console.warn('🔐 Unauthorized - removing token and redirecting');
-            // Token expired or invalid
-            localStorage.removeItem('token'); // Changed from 'authToken' to 'token'
-            window.location.href = '/admin-login';
+            console.warn('🔐 Unauthorized - token might be invalid');
+            // Only auto-redirect for auth endpoints, let components handle their own 401s
+            const isAuthEndpoint = error.config?.url?.includes('/auth/');
+            if (isAuthEndpoint) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('user');
+                window.location.href = '/loginPage';
+            }
         }
         return Promise.reject(error);
     }

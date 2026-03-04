@@ -9,13 +9,14 @@ const SignUpPage = () => {
   const [username, setUsename] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate=useNavigate();
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/register`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, {
         username: username,
         email: email,
         password: password,
@@ -78,15 +79,24 @@ const SignUpPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 w-full pr-12"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+            >
+              <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+            </button>
+          </div>
           <button type="submit" className="px-6 md:px-8 py-3 bg-orange-500 text-white rounded-full text-base md:text-lg hover:bg-orange-600 transition duration-300 w-full md:w-auto">
             SIGN UP
           </button>

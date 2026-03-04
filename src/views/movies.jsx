@@ -2,7 +2,7 @@ import Banner from '@/components/banner'
 import FilterBox from '@/components/filterBox'
 import React, { useEffect, useState } from 'react'
 import { FaShoppingCart, FaStar, FaRegStar, FaStarHalfAlt } from 'react-icons/fa';
-import axios from 'axios'
+import { myAxios } from '@/services/helper'
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
 import { setSearchInput } from '@/store/slices/searchSlice';
@@ -14,15 +14,21 @@ const Movies = () => {
     const [selectedFormat, setSelectedFormat] = useState("All");
     const [movies, setMovies] = useState([]);
     const [trailerUrl, setTrailerUrl] = useState(null);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12; // Show 12 movies per page
+    
     // --------------searching------------
 
     // const dispatch = useDispatch();
     const searchInput = useSelector((state) => state.search.searchInput);
+    const selectedCity = useSelector((state) => state.city.selectedCity);
 
     const searchMovie = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:1111/api/movie/searchByTitle?title=${searchInput?.toString()}`
+            const response = await myAxios.get(
+                `/movie/searchByTitle?title=${searchInput?.toString()}`
             );
             setMovies(response.data);
         }
@@ -35,20 +41,14 @@ const Movies = () => {
     // for filter
     const fetchMovies = async () => {
         try {
-            const token = localStorage.getItem("token");
             const params = new URLSearchParams();
 
             if (selectedLanguage !== "All") params.append("language", selectedLanguage);
             if (selectedGenre !== "All") params.append("genre", selectedGenre);
             if (selectedFormat !== "All") params.append("format", selectedFormat);
 
-            const response = await axios.get(
-                `http://localhost:1111/api/movie/filter?${params.toString()}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+            const response = await myAxios.get(
+                `/movie/filter?${params.toString()}`
             );
             setMovies(response.data);
         } catch (error) {
@@ -58,12 +58,15 @@ const Movies = () => {
 
     useEffect(() => {
         fetchMovies();
+        setCurrentPage(1); // Reset to first page when filters change
         console.log("Selected Filters:", { selectedLanguage, selectedGenre, selectedFormat });
     }, [selectedLanguage, selectedGenre, selectedFormat]);
 
     useEffect(() => {
         searchMovie();
+        setCurrentPage(1); // Reset to first page when searching
     }, [searchInput])
+    
     const navigate = useNavigate();
     const handleClick = (movie) => {
         navigate("/movieDetails", {
@@ -72,6 +75,18 @@ const Movies = () => {
             }
         })
     }
+
+    // Pagination logic
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentMovies = movies.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(movies.length / itemsPerPage);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        // Scroll to top of movies section
+        window.scrollTo({ top: 300, behavior: 'smooth' });
+    };
 
     return (
         <div className='bg-[#f5f5f5]'>
@@ -104,15 +119,15 @@ const Movies = () => {
 
                 {/* Movies List */}
                 <div className='w-[77%] pt-14'>
-                    <h1 className='text-xl font-bold pl-4 pb-4'>Movies In <span className='text-red-500'>Hyderabad</span></h1>
+                    <h1 className='text-xl font-bold pl-4 pb-4'>Movies In <span className='text-red-500'>{selectedCity || 'Your City'}</span></h1>
                     <div className='flex flex-col  items-center'>
 
                         <img src="./images/coming-soon-banner.avif" className='w-[97%] h-[70px] ' alt="" />
                     </div>
 
-                    <div className="flex flex-wrap justify-center  items-center ml-3 gap-4 h-screen overflow-scroll mt-14" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                        {movies.length > 0 ? (
-                            movies.map((movie) => (
+                    <div className="flex flex-wrap justify-center items-center ml-3 gap-4 mt-14 pb-10">
+                        {currentMovies.length > 0 ? (
+                            currentMovies.map((movie) => (
                                 <div key={movie.id} className="w-56 h-[350px] bg-white rounded-xl overflow-hidden shadow-lg pb-3">
                                     {/* Movie Image */}
                                     <div className="relative w-full flex justify-center items-center pt-2">
@@ -196,9 +211,16 @@ const Movies = () => {
                         ) : (
                             <p className="text-gray-600">Loading movies...</p>
                         )}
-
-                        <PaginationDesign />
                     </div>
+                    
+                    {/* Pagination - only show if there are movies and multiple pages */}
+                    {movies.length > 0 && totalPages > 1 && (
+                        <PaginationDesign 
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    )}
                 </div>
             </div>
         </div>

@@ -15,14 +15,22 @@ useEffect(() => {
     const m = location.state.data;
 
     setMovie({
+      movieId: m.movieId,
       title: m.movieName || m.title,
       postUrl: m.posterUrl || m.postUrl,
+      backgroundImageUrl: m.backgroundImageUrl,
       genre: Array.isArray(m.genres) ? m.genres.join(', ') : m.genre,
       language: m.language,
       releaseDate: m.releaseDate || "Coming Soon",
       duration: m.duration || "2h 30m",
       description: m.description || "No description available.",
       rating: m.rating || "N/A",
+      director: m.director,
+      format: m.format,
+      price: m.price,
+      trailer: m.trailer,
+      castMember: m.castMember || [],
+      crewMember: m.crewMember || [],
     });
   }
 }, [location.state]);
@@ -115,14 +123,14 @@ useEffect(() => {
           </p>
         </div>
 
-        <div className='border-b-[1px] pt-6 pb-6'>
-          <h1 className='text-3xl font-bold'>Cast</h1>
-          <AboutMovieSlider />
+        <div className='border-b-[1px] pt-6 pb-4'>
+          <h1 className='text-2xl font-bold mb-4'>Cast</h1>
+          <AboutMovieSlider people={movie.castMember} type="cast" />
         </div>
 
-        <div className='border-b-[1px] pt-6 pb-6'>
-          <h1 className='text-3xl font-bold'>Crew</h1>
-          <AboutMovieSlider />
+        <div className='pt-5 pb-4'>
+          <h1 className='text-2xl font-bold mb-4'>Crew</h1>
+          <AboutMovieSlider people={movie.crewMember} type="crew" />
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
   FaListAlt,
   FaClock
 } from 'react-icons/fa';
+import { myAxios } from '../../../services/helper';
 
 
 const Dashboard = () => {
@@ -33,31 +34,30 @@ const Dashboard = () => {
 useEffect(() => {
   const fetchDashboardCounts = async () => {
     try {
-      const token = localStorage.getItem("token"); // if JWT is used
+      const response = await myAxios.get('/admin/dashboard');
 
-      const response = await fetch(
-        "http://localhost:1111/api/admin/dashboard",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      const result = await response.json();
-
-      if (result.status) {
-        setCounts(result.data);
+      if (response.data.status) {
+        setCounts(response.data.data);
       }
     } catch (error) {
       console.error("Failed to load dashboard counts", error);
+      // If unauthorized, redirect to login
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('user');
+        navigate('/loginPage');
+      }
     }
   };
 
-  fetchDashboardCounts();
-}, []);
+  // Add small delay to ensure token is properly set in localStorage
+  const timer = setTimeout(() => {
+    fetchDashboardCounts();
+  }, 100);
+
+  return () => clearTimeout(timer);
+}, [navigate]);
 
 
   return (
