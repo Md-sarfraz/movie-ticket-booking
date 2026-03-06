@@ -1,5 +1,6 @@
 import './assets/style.css'
 import { Route, Routes, useLocation } from 'react-router-dom';
+import PageTransition, { AnimatePresence } from './components/pageTransition';
 import Home from './views/home';
 import About from './views/about';
 import LoginPage from './views/loginPage';
@@ -14,6 +15,7 @@ import PaymentDetails from './views/paymentDetails';
 import AdminLogin from './views/adminLogin';
 import AdminDashboard from './views/dashboard/admin/dashboardLayout';
 import UserDashboardLayout from './views/dashboard/user/dashboardLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Event from './views/event';
@@ -96,29 +98,29 @@ function App() {
       <Navbar />
       < div className=''>
         <ScrollToTop />
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/about' element={<About />} />
-          <Route path='/movies' element={<Movies />} />
-          <Route path='/contact' element={<Contact />} />
-          <Route path='/event' element={<Event />} />
-          <Route path='/ticketPage' element={<TicketPage />} />
-          <Route path='/loginPage' element={<LoginPage />} />
-          <Route path='/signUpPage' element={<SignUpPage />} />
-          <Route path='/movieDetails' element={<MovieDetails />} />
-          <Route path='/eventDetails' element={<EventDetails />} />
-          <Route path='/bookTickets' element={<BookTickets />} />
-          <Route path='/seatSelection' element={<SeatSelection />} />
-          <Route path='/payment' element={<PaymentPage />} />
-          <Route path='/paymentDetails' element={<PaymentDetails />} />
-          <Route path='/adminLogin' element={<AdminLogin />} />
-          <Route path='/adminDashboard/*' element={<AdminDashboard />} />
-          <Route path='/paymentPage' element={<PaymentPage />} />
-          <Route path='/userList' element={<UserList />} />
-
-          <Route path='/userDashboard/*' element={<UserDashboardLayout />} />
-
+        <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path='/' element={<PageTransition><Home /></PageTransition>} />
+          <Route path='/about' element={<PageTransition><About /></PageTransition>} />
+          <Route path='/movies' element={<PageTransition><Movies /></PageTransition>} />
+          <Route path='/contact' element={<PageTransition><Contact /></PageTransition>} />
+          <Route path='/event' element={<PageTransition><Event /></PageTransition>} />
+          <Route path='/ticketPage' element={<PageTransition><TicketPage /></PageTransition>} />
+          <Route path='/loginPage' element={<PageTransition><LoginPage /></PageTransition>} />
+          <Route path='/signUpPage' element={<PageTransition><SignUpPage /></PageTransition>} />
+          <Route path='/movieDetails' element={<PageTransition><MovieDetails /></PageTransition>} />
+          <Route path='/eventDetails' element={<PageTransition><EventDetails /></PageTransition>} />
+          <Route path='/bookTickets' element={<PageTransition><BookTickets /></PageTransition>} />
+          <Route path='/seatSelection' element={<PageTransition><SeatSelection /></PageTransition>} />
+          <Route path='/payment' element={<PageTransition><PaymentPage /></PageTransition>} />
+          <Route path='/paymentDetails' element={<PageTransition><PaymentDetails /></PageTransition>} />
+          <Route path='/adminLogin' element={<PageTransition><AdminLogin /></PageTransition>} />
+          <Route path='/adminDashboard/*' element={<PageTransition><ProtectedRoute requiredRole="ADMIN"><AdminDashboard /></ProtectedRoute></PageTransition>} />
+          <Route path='/paymentPage' element={<PageTransition><PaymentPage /></PageTransition>} />
+          <Route path='/userList' element={<PageTransition><UserList /></PageTransition>} />
+          <Route path='/userDashboard/*' element={<PageTransition><ProtectedRoute requiredRole="USER"><UserDashboardLayout /></ProtectedRoute></PageTransition>} />
         </Routes>
+        </AnimatePresence>
         <ToastContainer position="top-center" />
       </div>
       {!shouldHideFooter && <Footer />}

@@ -14,6 +14,8 @@ const Movies = () => {
     const [selectedFormat, setSelectedFormat] = useState("All");
     const [movies, setMovies] = useState([]);
     const [trailerUrl, setTrailerUrl] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -30,16 +32,14 @@ const Movies = () => {
             const response = await myAxios.get(
                 `/movie/searchByTitle?title=${searchInput?.toString()}`
             );
-            setMovies(response.data);
-        }
-        catch (error) {
-            console.error("Error searching movies:", error);
-        }
+            setMovies(response.data.data);
 
     }
 
     // for filter
     const fetchMovies = async () => {
+        setLoading(true);
+        setError(null);
         try {
             const params = new URLSearchParams();
 
@@ -50,10 +50,7 @@ const Movies = () => {
             const response = await myAxios.get(
                 `/movie/filter?${params.toString()}`
             );
-            setMovies(response.data);
-        } catch (error) {
-            console.error("Error fetching movies:", error);
-        }
+            setMovies(response.data.data);
     };
 
     useEffect(() => {
@@ -126,7 +123,25 @@ const Movies = () => {
                     </div>
 
                     <div className="flex flex-wrap justify-center items-center ml-3 gap-4 mt-14 pb-10">
-                        {currentMovies.length > 0 ? (
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                                <div className="w-14 h-14 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                                <p className="text-gray-500 font-medium">Loading movies...</p>
+                            </div>
+                        ) : error ? (
+                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                                    <span className="text-3xl">⚠️</span>
+                                </div>
+                                <p className="text-red-500 font-semibold text-lg">{error}</p>
+                                <button
+                                    onClick={fetchMovies}
+                                    className="px-6 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition font-medium"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+                        ) : currentMovies.length > 0 ? (
                             currentMovies.map((movie) => (
                                 <div key={movie.id} className="w-56 h-[350px] bg-white rounded-xl overflow-hidden shadow-lg pb-3">
                                     {/* Movie Image */}
@@ -209,7 +224,13 @@ const Movies = () => {
                                 
                             ))
                         ) : (
-                            <p className="text-gray-600">Loading movies...</p>
+                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <span className="text-3xl">🎬</span>
+                                </div>
+                                <p className="text-gray-600 font-semibold text-lg">No movies found</p>
+                                <p className="text-gray-400 text-sm">Try changing the filters or check back later.</p>
+                            </div>
                         )}
                     </div>
                     

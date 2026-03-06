@@ -28,7 +28,7 @@ const AddShowForm = () => {
   const fetchMovies = async () => {
     try {
       const response = await myAxios.get("/movie/findAllMovie");
-      setMovies(response.data);
+      setMovies(response.data.data); // Extract movies from ApiResponse wrapper
     } catch (error) {
       console.error("Error fetching movies:", error);
       toast.error("Failed to load movies");
@@ -38,7 +38,7 @@ const AddShowForm = () => {
   const fetchTheaters = async () => {
     try {
       const response = await myAxios.get("/theater/all");
-      setTheaters(response.data);
+      setTheaters(response.data.data); // Extract theaters from ApiResponse wrapper
     } catch (error) {
       console.error("Error fetching theaters:", error);
       toast.error("Failed to load theaters");

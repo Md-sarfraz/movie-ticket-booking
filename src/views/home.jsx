@@ -31,10 +31,11 @@ const Home = () => {
         // Map API response to component-friendly format
         const mapMovieData = (movie) => ({
           id: movie.movieId,
-          image: movie.posterUrl ? `${BASE_URL}/uploads/${movie.posterUrl}` : 'card-slider-img1.avif',
+          image: movie.postUrl || 'card-slider-img1.avif',
           title: movie.rating ? `${movie.rating}/10` : '8.0/10',
           movieName: movie.title || movie.movieName,
-          posterUrl: movie.posterUrl ? `${BASE_URL}/uploads/${movie.posterUrl}` : '',
+          posterUrl: movie.postUrl || '',
+          bannerUrl: movie.backgroundImageUrl || '',
           genres: movie.genres || [],
           language: movie.language || 'English',
           releaseDate: movie.releaseDate || '',
@@ -43,9 +44,9 @@ const Home = () => {
           rating: movie.rating || 0,
         });
 
-        setTopRatedMovies(topRatedRes.data?.map(mapMovieData) || []);
-        setTrendingMovies(trendingRes.data?.map(mapMovieData) || []);
-        setPopularMovies(popularRes.data?.map(mapMovieData) || []);
+        setTopRatedMovies(topRatedRes?.map(mapMovieData) || []);
+        setTrendingMovies(trendingRes?.map(mapMovieData) || []);
+        setPopularMovies(popularRes?.map(mapMovieData) || []);
         
       } catch (error) {
         console.error('Error fetching movies:', error);
@@ -59,10 +60,10 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
-          <p className="mt-4 text-gray-600">Loading movies...</p>
+      <div className="overflow-hidden">
+        {/* -------- HERO SLIDER SKELETON -------- */}
+        <div className="pt-20 md:pt-28 mx-4 md:mx-8">
+          <Slider movies={[]} loading={true} />
         </div>
       </div>
     );
@@ -73,7 +74,7 @@ const Home = () => {
 
       {/* -------- HERO SLIDER -------- */}
       <div className="pt-20 md:pt-28 mx-4 md:mx-8">
-        <Slider />
+        <Slider movies={topRatedMovies} loading={loading} />
       </div>
 
       {/* -------- UPCOMING MOVIES -------- */}
@@ -81,7 +82,7 @@ const Home = () => {
         <h1 className="text-xl md:text-2xl text-red-500 font-bold">Upcoming..</h1>
 
         <div className="my-3 flex justify-center">
-          <Slider2 />
+          <Slider2 movies={trendingMovies} />
         </div>
       </div>
 
@@ -99,48 +100,32 @@ const Home = () => {
           </div>
 
           {/* POPULAR MOVIES */}
-          <div className="flex flex-col items-center pt-10 px-4">
-            <img src="./images/film-logo.png" className="w-8 md:w-10" />
-            <p className="text-stone-400 text-xs">Watch Now</p>
-            <h1 className="text-2xl md:text-3xl font-bold">Popular Movies</h1>
+          <div className="flex items-center justify-between pt-10 pb-3 px-10 md:px-16">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Popular Movies</h2>
+            <span className="text-red-500 text-sm font-semibold cursor-pointer hover:underline">See All &rsaquo;</span>
           </div>
 
-          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
-            <p className="text-sm md:text-base">See All</p>
-            <i className="fa-solid fa-angle-right text-xs"></i>
-          </div>
-
-          <div className="w-full flex justify-center px-2">
+          <div className="px-10 md:px-16">
             <CardSlider slides={popularMovies.length > 0 ? popularMovies : []} />
           </div>
 
           {/* TOP RATED MOVIES */}
-          <div className="flex flex-col items-center pt-8 px-4">
-            <p className="text-stone-400 text-xs">Watch Now</p>
-            <h1 className="text-2xl md:text-3xl font-bold">Top Rated Movies</h1>
+          <div className="flex items-center justify-between pt-10 pb-3 px-10 md:px-16">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Top Rated Movies</h2>
+            <span className="text-red-500 text-sm font-semibold cursor-pointer hover:underline">See All &rsaquo;</span>
           </div>
 
-          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
-            <p className="text-sm md:text-base">See All</p>
-            <i className="fa-solid fa-angle-right text-xs"></i>
-          </div>
-
-          <div className="px-2">
+          <div className="px-10 md:px-16">
             <CardSlider slides={topRatedMovies.length > 0 ? topRatedMovies : []} />
           </div>
 
           {/* TRENDING MOVIES */}
-          <div className="flex flex-col items-center pt-8 px-4">
-            <p className="text-stone-400 text-xs">Watch Now</p>
-            <h1 className="text-2xl md:text-3xl font-bold">Trending Movies</h1>
+          <div className="flex items-center justify-between pt-10 pb-3 px-10 md:px-16">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Trending Movies</h2>
+            <span className="text-red-500 text-sm font-semibold cursor-pointer hover:underline">See All &rsaquo;</span>
           </div>
 
-          <div className="flex items-center gap-1 text-red-500 justify-end pr-6 md:pr-10">
-            <p className="text-sm md:text-base">See All</p>
-            <i className="fa-solid fa-angle-right text-xs"></i>
-          </div>
-
-          <div className="px-2 pb-10">
+          <div className="px-10 md:px-16 pb-12">
             <CardSlider slides={trendingMovies.length > 0 ? trendingMovies : []} />
           </div>
         </div>

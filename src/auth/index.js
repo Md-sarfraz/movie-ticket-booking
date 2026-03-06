@@ -10,14 +10,18 @@ export const isLoggedIn=()=>{
 }
 //doLogin
 export const doLogin=(data,next)=>{
-    localStorage.setItem("data",JSON.stringify(data))
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("user", JSON.stringify(data));
     next();
 }
 
 //doLogout
 export const doLogout=(next)=>{
-    localStorage.removeItem("data")
-    next()
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    next();
 }
 //get current user
 export const getCurrentUser=()=>{

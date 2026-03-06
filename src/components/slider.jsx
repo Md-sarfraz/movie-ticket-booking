@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import '../assets/style.css';
 import 'swiper/css';
@@ -6,132 +7,153 @@ import 'swiper/css/pagination';
 import 'swiper/css/autoplay';
 import { Pagination, Autoplay } from 'swiper/modules';
 
-const slides = [
-  {
-    src: "./images/slider-img6.jpg",
-    src2: "./images/slider1-small-khel-khel-me.jpg",
-    releasedDate: "November 19, 2021",
-    movieName: "KHEL KHEL MEIN",
-    aboutMovie: "A group of students unravels hidden truths from the past while retracing a mysterious event in history.",
-    videoUrl: "https://www.youtube.com/embed/RKZJtoFoaQg?si=DUStIewFbWrDpwN6",
-  },
-  {
-    src: "./images/slider-img3.jpg",
-    src2: "./images/slider1-small-stree2.jpg",
-    releasedDate: "Coming Soon",
-    movieName: "STREE 2",
-    aboutMovie: "The village of Chanderi faces the return of a supernatural entity, sparking new fears and adventures.",
-    videoUrl: "https://www.youtube.com/embed/KVnheXywIbY?si=t1yrQZWfcNrRtu4c",
-  },
-  {
-    src: "./images/slider-img5.jpg",
-    src2: "./images/slider1-small-avengers.jpg",
-    releasedDate: "28 APR 2024",
-    movieName: "AVENGERS",
-    aboutMovie: "Earth's Mightiest Heroes band together to protect against the greatest threats in the universe.",
-    videoUrl: "https://www.youtube.com/embed/6ZfuNTqbHE8?si=zrm-6qzXyINcE98V",
-  },
-  {
-    src: "./images/slider-img1.jpg",
-    src2: "./images/slider1-small-amran.jpg",
-    releasedDate: "Expected in 2025",
-    movieName: "AMRAN",
-    aboutMovie: "An intense journey of self-discovery and resilience against the backdrop of a small town's challenges.",
-    videoUrl: "https://www.youtube.com/embed/molA7xjD_nQ?si=XJQQxsc2hNq5ujpV",
-  },
-  {
-    src: "./images/slider-img2.jpg",
-    src2: "./images/slider1-small-lapata-ladies.jpg",
-    releasedDate: "August 10, 2023",
-    movieName: "LAPATA LADIES",
-    aboutMovie: "Two brides go missing in rural India, leading to a comedic and heartfelt search filled with twists.",
-    videoUrl: "https://www.youtube.com/embed/sm8t7aW5_4s?si=bMi8gxcEjohmOtfi",
-  },
-  {
-    src: "./images/slider-img4.jpg",
-    src2: "./images/slider1-small-ulajh.jpg",
-    releasedDate: "Coming Soon",
-    movieName: "ULAJH",
-    aboutMovie: "A suspenseful thriller following a diplomat who finds herself tangled in a web of danger and espionage.",
-    videoUrl: "https://www.youtube.com/embed/Tk1EQD7vGiY?si=l07pWWcS0WPwvH4U",
-  },
-  {
-    src: "./images/slider2-img2.jpg",
-    src2: "./images/slider1-small-bad-news.jpg",
-    releasedDate: "Expected in 2024",
-    movieName: "BAD NEWS",
-    aboutMovie: "A black comedy that brings to light the humorous side of an unexpected family crisis.",
-    videoUrl: "https://www.youtube.com/embed/uV50UfcIT68?si=FEccrF5gKGxI9Pg1",
-  },
-  {
-    src: "./images/slider-img8.jpg",
-    src2: "./images/slider1-small-badeMiya-chhoteMiya.jpg",
-    releasedDate: "Eid 2024",
-    movieName: "BADE MIYAN CHHOTE MIYAN",
-    aboutMovie: "An action-packed adventure with two unlikely heroes who take on a high-stakes mission together.",
-    videoUrl: "https://www.youtube.com/embed/IGzLHNPO4QI?si=sOjBTDMEYj92JDfN",
-  }
+const GRADIENTS = [
+  'from-slate-900 via-slate-800 to-slate-900',
+  'from-red-950 via-slate-900 to-slate-900',
+  'from-blue-950 via-slate-900 to-slate-900',
+  'from-purple-950 via-slate-900 to-slate-900',
+  'from-emerald-950 via-slate-900 to-slate-900',
+  'from-amber-950 via-slate-900 to-slate-900',
 ];
 
-export default function Slider() {
+// Loading skeleton shown while API is fetching
+function SliderSkeleton() {
+  return (
+    <div className="slider rounded-2xl overflow-hidden bg-slate-800 h-80 flex items-center px-6 md:px-16 animate-pulse">
+      {/* Left text skeleton */}
+      <div className="w-[55%] space-y-3">
+        <div className="h-3 w-24 bg-slate-600 rounded" />
+        <div className="h-8 w-56 bg-slate-600 rounded" />
+        <div className="h-3 w-48 bg-slate-700 rounded" />
+        <div className="h-3 w-40 bg-slate-700 rounded" />
+        <div className="h-8 w-28 bg-red-800/50 rounded-md mt-4" />
+      </div>
+      {/* Right poster skeleton */}
+      <div className="absolute right-12 md:right-24 top-8 w-36 h-48 bg-slate-600 rounded-lg" />
+    </div>
+  );
+}
+
+export default function Slider({ movies = [], loading = false }) {
   const [activeTrailer, setActiveTrailer] = useState(null);
+  const navigate = useNavigate();
 
-  const handlePlayClick = (videoUrl) => {
-    setActiveTrailer(videoUrl);
-  };
+  // Show skeleton while data is loading
+  if (loading) return <SliderSkeleton />;
 
-  const handleCloseTrailer = () => {
-    setActiveTrailer(null);
-  };
+  // Fallback when no movies are returned from API
+  if (!movies.length) {
+    return (
+      <div className="slider rounded-2xl overflow-hidden bg-gradient-to-r from-slate-900 to-slate-800 h-80 flex flex-col items-center justify-center gap-2">
+        <span className="text-4xl">🎬</span>
+        <p className="text-white/60 text-sm font-medium">No featured movies available right now</p>
+        <p className="text-white/30 text-xs">Check back soon!</p>
+      </div>
+    );
+  }
 
   return (
     <div className='slider rounded-2xl overflow-hidden'>
       <Swiper
         spaceBetween={30}
         pagination={{ clickable: true }}
-        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        autoplay={{ delay: 4500, disableOnInteraction: false }}
         modules={[Pagination, Autoplay]}
         className="mySwiper"
       >
-        {slides.map((slide, index) => (
-          <SwiperSlide key={index} className="relative w-full h-80 flex justify-center items-center">
-            <div className="h-full bg-black opacity-40 w-full absolute top-0"></div>
-            <div className='absolute w-40 h-44 top-11 right-28 z-20 shadow-lg'>
-              <img src={slide.src2} alt="" className='' />
-              <button
-                onClick={() => handlePlayClick(slide.videoUrl)}
-                className="bi bi-play-circle top-[40%] text-white text-4xl hover:text-red-500 absolute inset-0 flex items-center justify-center cursor-pointer"
-              ></button>
-            </div>
-            <img src={slide.src} alt="" className="w-[1250px] h-full object-cover rounded-2xl" />
-            <div className='absolute bottom-3 left-20 text-white w-[500px]'>
-              <h2 className='inline-block text-yellow-500'>{slide.releasedDate}</h2>
-              <h1 className='font-bold text-5xl'>{slide.movieName}</h1>
-              <br />
-              <p>{slide.aboutMovie}</p>
-              <button className='bg-red-500 hover:bg-white hover:text-red-500 text-white w-20 h-8 text-xs my-5'>Get Ticket</button>
-            </div>
-          </SwiperSlide>
-        ))}
+        {movies.map((movie, index) => {
+          const grad = GRADIENTS[index % GRADIENTS.length];
+          const posterSrc  = movie.posterUrl  || null;
+          const bannerSrc  = movie.bannerUrl   || null;
+          const releaseLabel = movie.releaseDate
+            ? new Date(movie.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+            : 'Now Showing';
+
+          return (
+            <SwiperSlide
+              key={movie.id || movie.movieId || index}
+              className="relative w-full h-80 flex justify-center items-center overflow-hidden"
+            >
+              {/* ── Background: banner image or gradient fallback ── */}
+              {bannerSrc ? (
+                <>
+                  <img
+                    src={bannerSrc}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                  {/* Dark overlay so text stays readable */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20" />
+                </>
+              ) : (
+                <div className={`absolute inset-0 bg-gradient-to-r ${grad}`} />
+              )}
+
+              {/* ── Poster on the right ── */}
+              <div className='absolute w-36 h-48 top-8 right-12 md:right-24 z-20 shadow-2xl rounded-lg overflow-hidden'>
+                {posterSrc ? (
+                  <img
+                    src={posterSrc}
+                    alt={movie.movieName || movie.title}
+                    className="w-full h-full object-cover"
+                    onError={e => e.target.style.display = 'none'}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-white/10 flex items-center justify-center">
+                    <span className="text-white/40 text-4xl">🎬</span>
+                  </div>
+                )}
+                {movie.trailer && (
+                  <button
+                    onClick={() => setActiveTrailer(movie.trailer)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
+                  >
+                    <i className="bi bi-play-circle text-white text-4xl hover:text-red-400" />
+                  </button>
+                )}
+              </div>
+
+              {/* ── Text on the left ── */}
+              <div className='absolute bottom-6 left-6 md:left-16 text-white w-[55%] md:w-[45%] z-10'>
+                <p className='inline-block text-yellow-400 text-sm font-medium mb-1'>{releaseLabel}</p>
+                <h1 className='font-bold text-3xl md:text-4xl leading-tight mb-2'>
+                  {movie.movieName || movie.title}
+                </h1>
+                <p className='text-gray-300 text-xs md:text-sm line-clamp-2 mb-4'>
+                  {movie.description || ''}
+                </p>
+                <button
+                  onClick={() => navigate('/movieDetails', { state: { movie } })}
+                  className='bg-red-500 hover:bg-white hover:text-red-500 text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors'
+                >
+                  Get Ticket
+                </button>
+              </div>
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
 
+      {/* ── Trailer modal ── */}
       {activeTrailer && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative w-full max-w-4xl h-96">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+          onClick={() => setActiveTrailer(null)}
+        >
+          <div className="relative w-full max-w-4xl aspect-video" onClick={e => e.stopPropagation()}>
             <iframe
-              src={activeTrailer}
+              src={`${activeTrailer}?autoplay=1`}
               title="Movie Trailer"
-              className="w-full h-full"
+              className="w-full h-full rounded-xl"
               frameBorder="0"
               allow="autoplay; encrypted-media"
               allowFullScreen
-            ></iframe>
+            />
             <button
-              onClick={handleCloseTrailer}
-              className="absolute top-2 right-2 text-white text-2xl cursor-pointer"
-            >
-              ✖
-            </button>
+              onClick={() => setActiveTrailer(null)}
+              className="absolute -top-8 right-0 text-white text-2xl hover:text-red-400"
+            >✖</button>
           </div>
         </div>
       )}

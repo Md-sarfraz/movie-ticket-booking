@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { isLoggedIn } from '../auth';
 import { FiSearch } from "react-icons/fi";
 import axios from 'axios';
-import { use } from 'react';
 import { Search } from 'lucide-react';
 import { X } from 'lucide-react';
 import SearchBar from './searchbar';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedCity } from '../store/slices/citySlice';
 import BookTheShowLogo from './bookTheShowLogo';
+import { FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 
 const Navbar = ({ onSearch }) => {
   const [isShowMenu, setIsShowMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const profileRef = useRef(null);
   const dispatch = useDispatch();
   const reduxUser = useSelector((state)=>state.auth.user);
   const selectedCity = useSelector((state)=>state.city.selectedCity);
@@ -34,18 +37,42 @@ const Navbar = ({ onSearch }) => {
   };
   
   const user = getUser();
-  console.log("Current user:", user)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfileDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const navigate = useNavigate();
-  const handlehandleImageClick = () => {
+
+  const getDashboardPath = () => {
     const role = localStorage.getItem('role');
-    if (role === "USER") {
-      navigate("/userDashboard")
-    }
-    else if (role === "ADMIN") {
-      navigate("/adminDashboard")
-    }
-  }
+    return role === 'ADMIN' ? '/adminDashboard' : '/userDashboard';
+  };
+
+  const getProfilePath = () => {
+    const role = localStorage.getItem('role');
+    return role === 'ADMIN' ? '/adminDashboard/profile' : '/userDashboard/userProfile';
+  };
+
+  const getSettingsPath = () => {
+    const role = localStorage.getItem('role');
+    return role === 'ADMIN' ? '/adminDashboard/settings' : '/userDashboard/settings';
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setShowLogoutConfirm(false);
+    setShowProfileDropdown(false);
+    navigate('/');
+    window.location.reload();
+  };
 
   const handleShowMenu = () => {
     setIsShowMenu(!isShowMenu);
@@ -275,17 +302,71 @@ const Navbar = ({ onSearch }) => {
               <Link to='LoginPage'>Login/Register</Link>
             </button>
             : 
-            <div className='flex flex-row justify-center items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 transition-all cursor-pointer' onClick={() => handlehandleImageClick()}>
-              <div className='w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-600 p-0.5 flex justify-center items-center overflow-hidden shadow-md hover:shadow-lg transition-shadow'>
-                <div className='w-full h-full rounded-full bg-white flex justify-center items-center overflow-hidden'>
-                  <img
-                    src={user?.image || "./images/user-dummy.png"}
-                    alt="User Profile"
-                    className="w-full h-full object-cover"
-                  />
+            <div 
+              ref={profileRef}
+              className='relative'
+              onMouseEnter={() => setShowProfileDropdown(true)}
+              onMouseLeave={() => !showLogoutConfirm && setShowProfileDropdown(false)}
+            >
+              {/* Avatar trigger */}
+              <div className='flex flex-row justify-center items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 transition-all cursor-pointer'>
+                <div className='w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-600 p-0.5 flex justify-center items-center overflow-hidden shadow-md hover:shadow-lg transition-shadow'>
+                  <div className='w-full h-full rounded-full bg-white flex justify-center items-center overflow-hidden'>
+                    <img
+                      src={user?.image || "./images/user-dummy.png"}
+                      alt="User Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.style.display='none'; }}
+                    />
+                  </div>
                 </div>
+                <p className='text-gray-700 text-sm font-medium hidden md:block'>{user?.username || user?.firstName}</p>
+                <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 hidden md:block ${showProfileDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </div>
-              <p className='text-gray-700 text-sm font-medium hidden md:block'>{user?.username}</p>
+
+              {/* Dropdown */}
+              {showProfileDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-100 z-[200] overflow-hidden dropdown-animate">
+                  {/* Arrow */}
+                  <div className="absolute -top-1.5 right-3 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45"></div>
+
+                  {/* User info */}
+                  <div className="px-3 pt-2.5 pb-2 border-b border-gray-100 bg-gray-50">
+                    <p className="text-xs font-semibold text-gray-800 truncate">{user?.username || user?.firstName || 'User'}</p>
+                    <p className="text-[10px] text-gray-400 truncate mt-0.5">{user?.email}</p>
+                  </div>
+
+                  {/* Menu items */}
+                  <div className="py-0.5">
+                    <Link
+                      to={getProfilePath()}
+                      onClick={() => setShowProfileDropdown(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <FaUser size={11} className="text-gray-400" />
+                      My Profile
+                    </Link>
+                    <Link
+                      to={getSettingsPath()}
+                      onClick={() => setShowProfileDropdown(false)}
+                      className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <FaCog size={11} className="text-gray-400" />
+                      Settings
+                    </Link>
+                  </div>
+
+                  <div className="border-t border-gray-100 py-0.5">
+                    <button
+                      onClick={() => setShowLogoutConfirm(true)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <FaSignOutAlt size={11} className="text-red-400" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           }
         </li>
@@ -353,6 +434,33 @@ const Navbar = ({ onSearch }) => {
             >
               About
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { setShowLogoutConfirm(false); setShowProfileDropdown(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-80 flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+              <FaSignOutAlt size={28} className="text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Logout?</h2>
+            <p className="text-gray-500 text-sm text-center">Are you sure you want to logout from your account?</p>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => { setShowLogoutConfirm(false); setShowProfileDropdown(false); }}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-2 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}

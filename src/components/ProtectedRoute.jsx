@@ -1,16 +1,19 @@
 import React from 'react'
-import { isLoggedIn } from '../auth'
-import Dashboard from '../views/userDashboard'
+import { Navigate } from 'react-router-dom'
 
-const ProtectedRoute = () => {
-    if(isLoggedIn()){
-        return (
-            <><Dashboard/></>
-        )
+const ProtectedRoute = ({ children, requiredRole }) => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token) {
+        return <Navigate to="/loginPage" replace />;
     }
-    else{
-        return
+
+    if (requiredRole && role !== requiredRole) {
+        return <Navigate to="/" replace />;
     }
+
+    return children;
 }
 
 export default ProtectedRoute

@@ -31,7 +31,7 @@ const TheaterList = () => {
     const fetchTheaters = async () => {
         try {
             const response = await myAxios.get("/theater/all");
-            setTheaters(response.data);
+            setTheaters(response.data.data); // Extract theaters from ApiResponse wrapper
         } catch (error) {
             console.error("Error fetching theaters:", error.response ? error.response.data : error.message);
         }

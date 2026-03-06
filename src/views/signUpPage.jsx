@@ -10,27 +10,29 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate=useNavigate();
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, {
         username: username,
         email: email,
         password: password,
         role:"user"
-
       });
       toast.success('Sign Up Successful! 🎉', {
-        onClose: () => navigate("/LoginPage"), // Redirect after toast closes
-        autoClose: 1000, // Auto close after 1 seconds
+        onClose: () => navigate("/LoginPage"),
+        autoClose: 1500,
       });
     }
     catch (error) {
       console.log("Error while submitting the signup form:", error);
       toast.error(error?.response?.data?.error || "Failed to sign up");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -97,8 +99,20 @@ const SignUpPage = () => {
               <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
             </button>
           </div>
-          <button type="submit" className="px-6 md:px-8 py-3 bg-orange-500 text-white rounded-full text-base md:text-lg hover:bg-orange-600 transition duration-300 w-full md:w-auto">
-            SIGN UP
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 md:px-8 py-3 bg-orange-500 text-white rounded-full text-base md:text-lg hover:bg-orange-600 transition duration-300 w-full disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating account...
+              </>
+            ) : 'SIGN UP'}
           </button>
         </form>
       </div>

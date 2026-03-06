@@ -38,7 +38,7 @@ const MovieList = () => {
     try {
       const response = await myAxios.get("/movie/findAllMovie");
       console.log("response is-", response);
-      setMovies(response.data); // Assuming response.data is an array of movies
+      setMovies(response.data.data); // Extract movies from ApiResponse wrapper
     } catch (error) {
       console.error("Error fetching movies:", error.response ? error.response.data : error.message);
     }
@@ -142,27 +142,27 @@ const MovieList = () => {
           currentMovies.map((movie) => (
             <div key={movie.movieId} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
               {/* Movie Image */}
-              <div className="relative w-full h-72 overflow-hidden group">
+              <div className="relative w-full h-52 overflow-hidden group">
                 <img 
                   src={movie.postUrl} 
                   alt={movie.title} 
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-3">
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center items-center gap-3">
                     <button 
-                      className="w-12 h-12 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
                       onClick={() => confirmDelete(movie)}
                       title="Delete Movie"
                     >
-                      <RiDeleteBin6Line className="text-xl" />
+                      <RiDeleteBin6Line className="text-lg" />
                     </button>
 
                     <button 
-                      className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
+                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
                       title="Edit Movie"
                     >
-                      <RiEdit2Line className="text-xl" />
+                      <RiEdit2Line className="text-lg" />
                     </button>
                   </div>
                 </div>
@@ -179,24 +179,24 @@ const MovieList = () => {
               )}
 
               {/* Movie Details */}
-              <div className="p-4">
-                <h2 className="text-lg font-bold text-gray-800 mb-2 truncate" title={movie.title}>
+              <div className="p-3">
+                <h2 className="text-sm font-bold text-gray-800 mb-1.5 truncate" title={movie.title}>
                   {movie.title}
                 </h2>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Genre:</span>
                     <span className="font-medium text-gray-700">{movie.genre}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Language:</span>
                     <span className="font-medium text-gray-700">{movie.language}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Duration:</span>
                     <span className="font-medium text-gray-700">{movie.duration} mins</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500">Release:</span>
                     <span className="font-medium text-gray-700">{movie.releaseDate}</span>
                   </div>

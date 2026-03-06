@@ -13,17 +13,32 @@ import MovieCard from './movieCard';
 
 export default function CardSlider({slides}) {
   return (
-    <>
-      <Swiper slidesPerView={5} navigation={true} modules={[Navigation]}  className="mySwiper w-full h-[85%]">
-
-        {
-          slides.map((item,index)=>(
-            <SwiperSlide className=' flex justify-center items-center' key={index}>
-            <MovieCard image={item.image} title={item.title} movieName={item.movieName} movieItem={item}/>
+    <div className='w-full'>
+      <Swiper
+        slidesPerView={2}
+        spaceBetween={16}
+        navigation={true}
+        modules={[Navigation]}
+        breakpoints={{
+          480:  { slidesPerView: 2, spaceBetween: 16 },
+          640:  { slidesPerView: 3, spaceBetween: 18 },
+          900:  { slidesPerView: 4, spaceBetween: 20 },
+          1100: { slidesPerView: 5, spaceBetween: 20 },
+          1400: { slidesPerView: 6, spaceBetween: 20 },
+        }}
+        className='mySwiper w-full !pb-2'
+      >
+        {slides.map((item, index) => (
+          <SwiperSlide key={index} className='!h-auto'>
+            <MovieCard
+              image={item.image}
+              title={item.title}
+              movieName={item.movieName}
+              movieItem={item}
+            />
           </SwiperSlide>
-          ))
-        }
+        ))}
       </Swiper>
-    </>
+    </div>
   );
 }

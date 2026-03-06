@@ -43,9 +43,9 @@ export const getShowsByMovie = async (movieId, city = null, date = null) => {
     console.log("========================================");
     console.log("📥 Response received:");
     console.log("   Status:", response.status);
-    console.log("   Shows count:", response.data?.length || 0);
-    if (response.data?.length > 0) {
-      response.data.forEach((show, i) => {
+    console.log("   Shows count:", response.data?.data?.length || 0);
+    if (response.data?.data?.length > 0) {
+      response.data.data.forEach((show, i) => {
         console.log(`   Show ${i+1}:`, {
           id: show.showId,
           theater: show.theater?.name,
@@ -59,7 +59,7 @@ export const getShowsByMovie = async (movieId, city = null, date = null) => {
     }
     console.log("========================================");
     
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("❌ Error fetching shows:", error);
     console.error("   Error details:", error.response?.data);
@@ -71,7 +71,7 @@ export const getShowsByMovie = async (movieId, city = null, date = null) => {
 export const getUpcomingShows = async (movieId) => {
   try {
     const response = await myAxios.get(`/shows/upcoming/${movieId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching upcoming shows:", error);
     throw error;
@@ -86,7 +86,7 @@ export const getAvailableDates = async (movieId, city = null) => {
       url += `?city=${encodeURIComponent(city)}`;
     }
     const response = await myAxios.get(url);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching available dates:", error);
     throw error;
@@ -97,7 +97,7 @@ export const getAvailableDates = async (movieId, city = null) => {
 export const getAvailableShows = async (movieId) => {
   try {
     const response = await myAxios.get(`/shows/available/${movieId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching available shows:", error);
     throw error;
@@ -108,7 +108,7 @@ export const getAvailableShows = async (movieId) => {
 export const bookSeats = async (showId, numberOfSeats) => {
   try {
     const response = await myAxios.post(`/shows/book/${showId}/${numberOfSeats}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error booking seats:", error);
     throw error;
@@ -119,7 +119,7 @@ export const bookSeats = async (showId, numberOfSeats) => {
 export const getShowById = async (showId) => {
   try {
     const response = await myAxios.get(`/shows/${showId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching show:", error);
     throw error;

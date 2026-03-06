@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Check, X, Ticket, CreditCard, Film, Calendar, Clock, MapPin, Monitor, ChevronLeft, Users, IndianRupee } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { myAxios } from "@/services/helper";
 
 const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -50,8 +50,8 @@ const SeatSelection = () => {
       }
 
       try {
-        const response = await axios.get(
-          `http://localhost:8080/bookings/show/${show.showId}/booked-seats`
+        const response = await myAxios.get(
+          `/bookings/show/${show.showId}/booked-seats`
         );
         
         // Expected format: ["A1", "A2", "B5", etc.]
@@ -125,10 +125,12 @@ const SeatSelection = () => {
 
     try {
       // ── STEP 1: Create order on backend (amount calculated server-side) ──
-      const orderRes = await axios.post('http://localhost:8080/api/v1/payment/create-order', {
+      const userStr = localStorage.getItem('user');
+      const userId = userStr ? JSON.parse(userStr)?.id : null;
+      const orderRes = await myAxios.post('/payment/create-order', {
         showId: show?.showId,
         seatLabels: selectedSeats.map(s => s.label),
-        userId: null // pass userId here if your app has auth
+        userId: userId
       });
 
       const { razorpayOrderId, amountInPaise, currency, keyId, bookingId, bookingReference } = orderRes.data;
@@ -151,7 +153,7 @@ const SeatSelection = () => {
         handler: async function (response) {
           // ── STEP 3: Send payment details to backend for signature verification ──
           try {
-            const verifyRes = await axios.post('http://localhost:8080/api/v1/payment/verify', {
+            const verifyRes = await myAxios.post('/payment/verify', {
               razorpayOrderId:   response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature
@@ -433,14 +435,16 @@ const SeatSelection = () => {
               </div>
 
               {/* Hover info */}
-              {hoveredSeat && !isSeatBooked(hoveredSeat.row, hoveredSeat.index) && (
-                <div className="text-center mt-3 px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
-                  <span className="text-sm font-medium text-gray-700">
-                    Seat {getSeatLabel(hoveredSeat.row, hoveredSeat.index)} - ₹{seatPrice}
-                    {isSeatSelected(hoveredSeat.row, hoveredSeat.index) ? " (Selected)" : " (Available)"}
-                  </span>
-                </div>
-              )}
+              <div className="text-center mt-3 h-10 flex items-center justify-center">
+                {hoveredSeat && !isSeatBooked(hoveredSeat.row, hoveredSeat.index) && (
+                  <div className="px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
+                    <span className="text-sm font-medium text-gray-700">
+                      Seat {getSeatLabel(hoveredSeat.row, hoveredSeat.index)} - ₹{seatPrice}
+                      {isSeatSelected(hoveredSeat.row, hoveredSeat.index) ? " (Selected)" : " (Available)"}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

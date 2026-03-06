@@ -1,30 +1,60 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+
 const MovieCard = (props) => {
   const navigate = useNavigate();
-  //handle the navigate
-  const handleNavigate = () => {
-    navigate('/movieDetails', { 
-  state: { data: props.movieItem }   // key unified
-});
 
-  }
+  const handleNavigate = () => {
+    navigate('/movieDetails', { state: { data: props.movieItem } });
+  };
+
+  const rating  = props.movieItem?.rating ?? null;
+  const genres  = props.movieItem?.genres;
+  const genreText = Array.isArray(genres) && genres.length
+    ? genres.slice(0, 3).join(' / ')
+    : (props.movieItem?.language || '');
+
+  const imgSrc = props.image && props.image.startsWith('http')
+    ? props.image
+    : `./images/${props.image || 'card-slider-img1.avif'}`;
+
   return (
-    <div className='overflow-hidden w-[220px] h-[325px] border-4 hover:border-red-500 rounded-lg my-12 cursor-pointer '>
-      <div className=' movie-card relative w-full h-[325px] transition duration-300 ease-in-out hover:scale-105 '>
-        <img src={`./images/${props.image}`} className='w-full h-full object-cover' alt="" />
-        <div className="h-full w-full absolute  top-0" style={{ background: 'linear-gradient(0deg, black 0%, rgba(0, 0, 0, 0) 65%)' }}></div>
+    <div className='cursor-pointer group w-full' onClick={handleNavigate}>
+
+      {/* ── Poster card ── */}
+      <div className='relative w-full rounded-lg overflow-hidden shadow-md'
+           style={{ aspectRatio: '2/3' }}>
+
+        <img
+          src={imgSrc}
+          className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
+          alt={props.movieName}
+          onError={e => { e.target.src = './images/card-slider-img1.avif'; }}
+        />
+
+        {/* Rating bar */}
+        {rating !== null && (
+          <div className='absolute bottom-0 left-0 right-0 bg-black/85 flex items-center gap-2 px-3 py-2.5'>
+            <i className='bi bi-star-fill text-yellow-400 text-[13px]'></i>
+            <span className='text-white text-[13px] font-semibold tracking-wide'>
+              {Number(rating).toFixed(1)}/10
+            </span>
+          </div>
+        )}
       </div>
-      <div className='absolute bottom-[45px] left-[40px]'>
-        <div className='flex  items-center gap-2'>
-          <i class="bi bi-suit-heart-fill text-[#e53935] text-base"></i>
-          <p className='text-sm text-white m-0' >{props.title}</p>
-        </div>
-        <h1 className='text-LG font-bold text-white'>{props.movieName}</h1>
-        <button className='mt-4 w-20 h-8 bg-white text-xs hover:bg-red-500  hover:text-white font-bold transition duration-300 ease-in-out hover:scale-105' onClick={() => handleNavigate()}>Get Ticket</button>
+
+      {/* ── Info below card ── */}
+      <div className='mt-2.5 px-0.5'>
+        <h3 className='text-lg font-bold text-gray-900 leading-snug line-clamp-2'>
+          {props.movieName}
+        </h3>
+        {genreText && (
+          <p className='text-sm text-gray-500 mt-1 line-clamp-1'>{genreText}</p>
+        )}
       </div>
+
     </div>
-  )
-}
+  );
+};
 
 export default MovieCard

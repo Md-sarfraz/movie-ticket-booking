@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaUser, FaHome, FaFilm, FaCalendarAlt, FaCog, FaSignOutAlt, FaChartBar, FaList } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { doLogout } from "../auth";
@@ -8,13 +8,14 @@ const UserSidebar = () => {
   const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const location = useLocation();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   
   // Check if current path matches the route
   const isActive = (path) => {
     return location.pathname.includes(path);
   };
   
-  const logout = () => {
+  const confirmLogout = () => {
     localStorage.clear();
     doLogout(() => {
       navigate("/");
@@ -151,7 +152,7 @@ const UserSidebar = () => {
             {/* Logout Button */}
       <div className=" border-t pt-4">
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center justify-center space-x-2 p-3 text-gray-700 hover:bg-red-50 rounded-lg transition-colors"
         >
           <FaSignOutAlt size={16} className="text-red-500" />
@@ -161,8 +162,33 @@ const UserSidebar = () => {
           </li>
         </ul>
       </nav>
-      
-      
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-80 flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-1">
+              <FaSignOutAlt size={28} className="text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Logout?</h2>
+            <p className="text-gray-500 text-sm text-center">Are you sure you want to logout from your account?</p>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 py-2 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

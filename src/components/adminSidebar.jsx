@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { FaUsers, FaFilm, FaChartBar, FaCog, FaSignOutAlt, FaBuilding, FaTachometerAlt, FaTicketAlt, FaClock } from 'react-icons/fa';
+import { FaUsers, FaFilm, FaChartBar, FaCog, FaSignOutAlt, FaBuilding, FaTachometerAlt, FaTicketAlt, FaClock, FaUser } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeItem, setActiveItem] = useState("");
-  
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   // Check if current path matches the route
   const isActive = (path) => {
     return location.pathname.includes(path);
@@ -17,7 +18,7 @@ const AdminSidebar = () => {
     navigate(`/adminDashboard/${path}`);
   };
   
-  const logout = () => {
+  const confirmLogout = () => {
     localStorage.clear();
     navigate("/");
   };
@@ -125,6 +126,20 @@ const AdminSidebar = () => {
           
           <li>
             <button
+              onClick={() => handleNavigation("profile")}
+              className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
+                isActive("/profile") || activeItem === "profile"
+                  ? "bg-red-100 text-red-600 font-medium" 
+                  : "text-gray-700 hover:bg-gray-50 active:bg-red-50"
+              }`}
+            >
+              <FaUser size={18} className={isActive("/profile") || activeItem === "profile" ? "text-red-500" : "text-gray-500"} />
+              <span>Profile</span>
+            </button>
+          </li>
+          
+          <li>
+            <button
               onClick={() => handleNavigation("settings")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/settings") || activeItem === "settings"
@@ -170,7 +185,7 @@ const AdminSidebar = () => {
              {/* Logout Button */}
       <div className=" border-t p-4">
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center justify-center space-x-2 p-3 text-gray-700 hover:bg-red-50 rounded-lg transition-colors active:bg-red-100"
         >
           <FaSignOutAlt size={16} className="text-red-500" />
@@ -180,8 +195,33 @@ const AdminSidebar = () => {
           </li>
         </ul>
       </nav>
-      
-     
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-80 flex flex-col items-center gap-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-1">
+              <FaSignOutAlt size={28} className="text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Logout?</h2>
+            <p className="text-gray-500 text-sm text-center">Are you sure you want to logout from the admin panel?</p>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 py-2 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
