@@ -33,8 +33,10 @@ const Movies = () => {
                 `/movie/searchByTitle?title=${searchInput?.toString()}`
             );
             setMovies(response.data.data);
-
-    }
+        } catch (error) {
+            console.error("Error searching movies:", error);
+        }
+    };
 
     // for filter
     const fetchMovies = async () => {
@@ -51,6 +53,12 @@ const Movies = () => {
                 `/movie/filter?${params.toString()}`
             );
             setMovies(response.data.data);
+        } catch (error) {
+            console.error("Error fetching movies:", error);
+            setError("Failed to load movies. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
