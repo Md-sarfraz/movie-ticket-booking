@@ -72,13 +72,15 @@ export default function TicketConfirmationPage() {
         backgroundColor: "#0f172a",
       });
 
+      const imgW = TICKET_W;
+      const imgH = TICKET_H;
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "px",
-        format: [TICKET_W, TICKET_H],
+        format: [imgW, imgH],
         hotfixes: ["px_scaling"],
       });
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, TICKET_W, TICKET_H);
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, imgW, imgH);
       pdf.save(`ticket-${bookingId || "booking"}.pdf`);
     } catch (err) {
       console.error("Ticket download failed:", err);

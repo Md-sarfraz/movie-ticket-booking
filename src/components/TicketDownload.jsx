@@ -3,8 +3,8 @@ import { QRCodeSVG } from "qrcode.react";
 
 // Fixed pixel dimensions used for both the DOM element and the PDF export.
 // html2canvas captures this div; jsPDF writes at these exact sizes.
-const TICKET_W = 800;
-const TICKET_H = 340;
+const TICKET_W = 820;
+const TICKET_H = 370;
 
 /**
  * Hidden off-screen ticket layout.
@@ -61,7 +61,8 @@ const TicketDownload = React.forwardRef(function TicketDownload(
         height: `${TICKET_H}px`,
         display: "flex",
         fontFamily: "'Segoe UI', Arial, sans-serif",
-        background: "#0f172a",
+        background: "#ffffff",
+        border: "1px solid #e5e7eb",
         overflow: "hidden",
       }}
     >
@@ -92,12 +93,12 @@ const TicketDownload = React.forwardRef(function TicketDownload(
             </span>
           </div>
         )}
-        {/* Right-edge gradient so poster blends into the dark background */}
+        {/* Right-edge gradient so poster blends into the light background */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(to right, transparent 55%, #0f172a 100%)",
+            background: "linear-gradient(to right, transparent 60%, #ffffff 100%)",
           }}
         />
       </div>
@@ -130,13 +131,11 @@ const TicketDownload = React.forwardRef(function TicketDownload(
             </div>
             <div
               style={{
-                color: "#ffffff",
+                color: "#111827",
                 fontSize: "22px",
                 fontWeight: "800",
-                lineHeight: 1.2,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                lineHeight: 1.25,
+                wordBreak: "break-word",
               }}
             >
               {movie?.title}
@@ -149,8 +148,8 @@ const TicketDownload = React.forwardRef(function TicketDownload(
                   <span
                     key={tag}
                     style={{
-                      background: "rgba(255,255,255,0.08)",
-                      color: "#94a3b8",
+                      background: "#f3f4f6",
+                      color: "#374151",
                       fontSize: "10px",
                       padding: "2px 8px",
                       borderRadius: "4px",
@@ -169,7 +168,7 @@ const TicketDownload = React.forwardRef(function TicketDownload(
         </div>
 
         {/* Divider */}
-        <div style={{ borderTop: "1.5px dashed rgba(255,255,255,0.15)" }} />
+        <div style={{ borderTop: "1.5px dashed #d1d5db" }} />
 
         {/* Row 2 — 3-column details grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px 18px" }}>
@@ -188,12 +187,10 @@ const TicketDownload = React.forwardRef(function TicketDownload(
               </div>
               <div
                 style={{
-                  color: "#e2e8f0",
+                  color: "#111827",
                   fontSize: "12px",
                   fontWeight: "600",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  wordBreak: "break-word",
                 }}
               >
                 {value}
@@ -203,7 +200,7 @@ const TicketDownload = React.forwardRef(function TicketDownload(
         </div>
 
         {/* Divider */}
-        <div style={{ borderTop: "1.5px dashed rgba(255,255,255,0.15)", marginTop: "auto" }} />
+        <div style={{ borderTop: "1.5px dashed #d1d5db", marginTop: "auto" }} />
 
         {/* Row 3 — Booking ID + Amount */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -219,7 +216,7 @@ const TicketDownload = React.forwardRef(function TicketDownload(
             <div style={{ color: "#64748b", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Amount Paid
             </div>
-            <div style={{ color: "#ffffff", fontSize: "20px", fontWeight: "800" }}>
+            <div style={{ color: "#111827", fontSize: "20px", fontWeight: "800" }}>
               &#8377;{Number(totalPrice || 0).toFixed(2)}
             </div>
           </div>
