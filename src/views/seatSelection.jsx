@@ -133,7 +133,7 @@ const SeatSelection = () => {
         userId: userId
       });
 
-      const { razorpayOrderId, amountInPaise, currency, keyId, bookingId, bookingReference } = orderRes.data;
+      const { razorpayOrderId, amountInPaise, currency, keyId, bookingId, bookingReference } = orderRes.data?.data || orderRes.data;
 
       // ── STEP 2: Open Razorpay modal with server's order_id ──
       if (!window.Razorpay) {
@@ -160,7 +160,7 @@ const SeatSelection = () => {
             });
 
             // ── STEP 4: Signature valid → booking confirmed in DB → navigate ──
-            const confirmed = verifyRes.data;
+            const confirmed = verifyRes.data?.data || verifyRes.data;
             navigate('/ticketPage', {
               state: {
                 movie,
@@ -204,8 +204,14 @@ const SeatSelection = () => {
       };
 
       const razorpay = new window.Razorpay(options);
-      razorpay.on('payment.failed', function (response) {
+      razorpay.on('payment.failed', async function (response) {
         console.error('Payment failed:', response.error);
+        // Mark booking as FAILED in DB so it doesn't stay PENDING indefinitely
+        try {
+          await myAxios.post(`/payment/failed?razorpayOrderId=${options.order_id}`);
+        } catch (failErr) {
+          console.warn('Could not mark booking as failed on backend:', failErr);
+        }
         alert(`Payment Failed: ${response.error.description || 'Something went wrong'}`);
         setPaymentLoading(false);
       });
@@ -264,78 +270,48 @@ const SeatSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-6">
-      {/* Movie Banner Header */}
-      <div className="relative w-full h-40 md:h-52 mb-4 overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-gray-900"
-          style={{
-            backgroundImage: `url('${backgroundUrl}')`,
-            filter: 'blur(8px) brightness(0.4)',
-            transform: 'scale(1.1)'
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
-        
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-4">
+      {/* Movie Info Card */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 mt-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-2 left-4 p-1.5 hover:bg-white/20 rounded-lg transition-colors backdrop-blur-sm"
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
           >
-            <ChevronLeft size={24} className="text-white" />
+            <ChevronLeft size={20} className="text-gray-600" />
           </button>
 
-          <div className="flex items-center gap-4 mt-4">
-            {/* Movie Poster */}
-            <img
-              src={posterUrl}
-              alt={movie.title}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://via.placeholder.com/400x600?text=No+Poster';
-              }}
-              className="w-20 h-28 md:w-28 md:h-40 object-cover rounded-lg shadow-2xl ring-2 ring-red-500/50"
-            />
+          <img
+            src={posterUrl}
+            alt={movie.title}
+            onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x600?text=No+Poster'; }}
+            className="w-10 h-14 object-cover rounded-md shadow-sm shrink-0"
+          />
 
-            {/* Movie Info */}
-            <div className="text-white">
-              <h1 className="text-xl md:text-2xl font-bold mb-2 drop-shadow-lg">
-                {movie.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 mb-2 text-xs md:text-sm">
-                <span className="flex items-center gap-1">
-                  <span className="text-yellow-400">★</span>
-                  {movie.rating}/10
-                </span>
-                <span>•</span>
-                <span>{movie.duration || '2h 36min'}</span>
-                <span>•</span>
-                <span>{movie.genre || 'Action/Drama'}</span>
-              </div>
-              <div className="space-y-1 text-xs md:text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPin size={14} className="text-red-400" />
-                  <span>{theater?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Calendar size={14} className="text-red-400" />
-                    <span>{new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} className="text-red-400" />
-                    <span>{time}</span>
-                  </div>
-                  {show?.screenNumber && (
-                    <>
-                      <span>•</span>
-                      <span>{show.screenNumber}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 min-w-0">
+            <span className="font-bold text-gray-900 text-base">{movie.title}</span>
+            <span className="flex items-center gap-1 text-sm text-gray-500">
+              <MapPin size={13} className="text-red-400" />
+              {theater?.name}
+            </span>
+            <span className="flex items-center gap-1 text-sm text-gray-500">
+              <Calendar size={13} className="text-red-400" />
+              {new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+            </span>
+            <span className="flex items-center gap-1 text-sm text-gray-500">
+              <Clock size={13} className="text-red-400" />
+              {time}
+            </span>
+            {show?.screenNumber && (
+              <span className="flex items-center gap-1 text-sm text-gray-500">
+                <Monitor size={13} className="text-red-400" />
+                {show.screenNumber}
+              </span>
+            )}
+            {show?.language && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                {show.language}{show?.format ? ` • ${show.format}` : ''}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -388,6 +364,12 @@ const SeatSelection = () => {
                         const isSelected = isSeatSelected(rowIndex, seatIndex);
                         const seatLabel = getSeatLabel(rowIndex, seatIndex);
 
+                        const seatColor = isBooked
+                          ? '#d1d5db'
+                          : isSelected
+                          ? '#f97316'
+                          : '#10b981';
+
                         return (
                           <button
                             key={`${rowIndex}-${seatIndex}`}
@@ -395,16 +377,25 @@ const SeatSelection = () => {
                             onMouseEnter={() => setHoveredSeat({ row: rowIndex, index: seatIndex })}
                             onMouseLeave={() => setHoveredSeat(null)}
                             disabled={isBooked}
-                            className={`
-                              w-6 h-6 md:w-8 md:h-8 rounded-md font-medium text-xs transition-all duration-200 flex items-center justify-center
-                              ${isBooked
-                                ? 'bg-gray-300 cursor-not-allowed'
-                                : isSelected
-                                ? 'bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 shadow-md'
-                                : 'bg-emerald-500 hover:bg-emerald-600 shadow-sm'
-                              }
-                            `}
+                            title={seatLabel}
+                            className={`transition-transform duration-150 ${
+                              !isBooked ? 'hover:scale-110 active:scale-95' : 'cursor-not-allowed'
+                            }`}
+                            style={{ background: 'none', border: 'none', padding: 0 }}
                           >
+                            {/* Cinema seat SVG icon */}
+                            <svg width="22" height="20" viewBox="0 0 22 20" xmlns="http://www.w3.org/2000/svg">
+                              {/* seat back */}
+                              <rect x="2" y="0" width="18" height="12" rx="3" fill={seatColor} />
+                              {/* seat cushion */}
+                              <rect x="1" y="12" width="20" height="5" rx="2" fill={seatColor} />
+                              {/* left leg */}
+                              <rect x="3" y="17" width="3" height="3" rx="1" fill={seatColor} />
+                              {/* right leg */}
+                              <rect x="16" y="17" width="3" height="3" rx="1" fill={seatColor} />
+                              {/* shine on back */}
+                              {!isBooked && <rect x="5" y="2" width="6" height="2" rx="1" fill="white" opacity="0.25" />}
+                            </svg>
                           </button>
                         );
                       })}
@@ -419,19 +410,18 @@ const SeatSelection = () => {
               </div>
 
               {/* Legend */}
-              <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-emerald-500 rounded-md shadow-sm"></div>
-                  <span className="text-xs text-gray-700 font-medium">Available</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-gray-300 rounded-md"></div>
-                  <span className="text-xs text-gray-700 font-medium">Booked</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-md shadow-md"></div>
-                  <span className="text-xs text-gray-700 font-medium">Selected</span>
-                </div>
+              <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-gray-200">
+                {[{ color: '#10b981', label: 'Available' }, { color: '#d1d5db', label: 'Booked' }, { color: '#f97316', label: 'Selected' }].map(({ color, label }) => (
+                  <div key={label} className="flex items-center gap-1.5">
+                    <svg width="18" height="16" viewBox="0 0 22 20" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="0" width="18" height="12" rx="3" fill={color} />
+                      <rect x="1" y="12" width="20" height="5" rx="2" fill={color} />
+                      <rect x="3" y="17" width="3" height="3" rx="1" fill={color} />
+                      <rect x="16" y="17" width="3" height="3" rx="1" fill={color} />
+                    </svg>
+                    <span className="text-xs text-gray-700 font-medium">{label}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Hover info */}

@@ -146,18 +146,30 @@ export default function ManageBookings() {
   // Status badge color
   const getStatusColor = (status) => {
     switch (status) {
-      case 'CONFIRMED':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'FAILED':
-        return 'bg-red-100 text-red-800';
-      case 'CANCELLED':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'CONFIRMED': return 'bg-green-100 text-green-800';
+      case 'PENDING':   return 'bg-yellow-100 text-yellow-800';
+      case 'FAILED':    return 'bg-red-100 text-red-800';
+      case 'CANCELLED': return 'bg-gray-100 text-gray-800';
+      default:          return 'bg-gray-100 text-gray-800';
     }
   };
+
+  /**
+   * Status transition rules (mirrors backend AdminService):
+   *   PENDING    → CONFIRMED | FAILED
+   *   CONFIRMED  → CANCELLED
+   *   FAILED     → (terminal)
+   *   CANCELLED  → (terminal)
+   */
+  const getAllowedTransitions = (currentStatus) => {
+    switch (currentStatus) {
+      case 'PENDING':   return ['CONFIRMED', 'FAILED'];
+      case 'CONFIRMED': return ['CANCELLED'];
+      default:          return [];  // FAILED / CANCELLED are terminal
+    }
+  };
+
+  const isTerminalStatus = (status) => status === 'FAILED' || status === 'CANCELLED';
 
   // Format date
   const formatDate = (dateString) => {
@@ -191,6 +203,9 @@ export default function ManageBookings() {
               Manage Bookings
             </h1>
             <p className="text-gray-600 mt-1">View and manage all movie bookings</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Status updates automatically on payment. Admin override is for support use only.
+          </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">Total Bookings</p>
@@ -373,16 +388,27 @@ export default function ManageBookings() {
                       {formatDate(booking.createdAt)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      <select
-                        value={booking.paymentStatus}
-                        onChange={(e) => handleStatusChange(booking.bookingId, e.target.value, e)}
-                        className="px-1 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-red-500 focus:border-transparent w-full"
-                      >
-                        <option value="PENDING">Pending</option>
-                        <option value="CONFIRMED">Confirmed</option>
-                        <option value="FAILED">Failed</option>
-                        <option value="CANCELLED">Cancelled</option>
-                      </select>
+                      {isTerminalStatus(booking.paymentStatus) ? (
+                        <span
+                          className="text-xs text-gray-400 italic"
+                          title={`${booking.paymentStatus} is a terminal state — no further changes allowed`}
+                        >
+                          No change
+                        </span>
+                      ) : (
+                        <select
+                          defaultValue=""
+                          onChange={(e) => {
+                            if (e.target.value) handleStatusChange(booking.bookingId, e.target.value, e);
+                          }}
+                          className="px-1 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-red-500 focus:border-transparent w-full"
+                        >
+                          <option value="" disabled>Change…</option>
+                          {getAllowedTransitions(booking.paymentStatus).map((s) => (
+                            <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>
+                          ))}
+                        </select>
+                      )}
                     </td>
                   </tr>
                 ))
