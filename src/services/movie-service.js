@@ -32,3 +32,19 @@ export const getPopularMovies = async () => {
         throw error;
     }
 };
+
+// Upload a single image to Cloudinary (for pre-upload before bulk create)
+export const uploadImageToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await myAxios.post('/cloudinary/upload/simple', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data.secure_url || response.data.url || response.data.imageUrl;
+};
+
+// Create multiple movies in bulk (all images must be pre-uploaded URLs)
+export const createBulkMovies = async (movies) => {
+    const response = await myAxios.post('/movie/createBulk', movies);
+    return response.data;
+};

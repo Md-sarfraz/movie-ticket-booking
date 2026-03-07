@@ -81,7 +81,7 @@ const AdminSidebar = () => {
               <span>Manage Movies</span>
             </button>
           </li>
-          
+
           <li>
             <button
               onClick={() => handleNavigation("theaterList")}
