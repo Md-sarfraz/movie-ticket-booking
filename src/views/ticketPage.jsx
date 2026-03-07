@@ -1,20 +1,13 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Check, Download, Home, Calendar, Clock, MapPin, Ticket } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-
-const printStyles = `
-  @media print {
-    body > *:not(#ptroot) { display: none !important; }
-    #ptroot { display: block !important; position: fixed; inset: 0; background: #fff; }
-    @page { margin: 12mm; size: A4 portrait; }
-  }
-  #ptroot { display: none; }
-`;
+import TicketDownload, { TICKET_W, TICKET_H } from "../components/TicketDownload";
 
 export default function TicketConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const ticketRef = useRef(null);
 
   const {
     movie,
@@ -65,8 +58,32 @@ export default function TicketConfirmationPage() {
     amount: totalPrice,
   });
 
-  const handleDownload = () => {
-    window.print();
+  const handleDownload = async () => {
+    if (!ticketRef.current) return;
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const canvas = await html2canvas(ticketRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: "#0f172a",
+      });
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "px",
+        format: [TICKET_W, TICKET_H],
+        hotfixes: ["px_scaling"],
+      });
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, TICKET_W, TICKET_H);
+      pdf.save(`ticket-${bookingId || "booking"}.pdf`);
+    } catch (err) {
+      console.error("Ticket download failed:", err);
+      alert("Could not generate ticket PDF. Please try again.");
+    }
   };
 
   if (!movie || !theater) {
@@ -87,69 +104,20 @@ export default function TicketConfirmationPage() {
 
   return (
     <>
-      <style>{printStyles}</style>
+      <TicketDownload
+        ref={ticketRef}
+        movie={movie}
+        show={show}
+        theater={theater}
+        time={time}
+        date={date}
+        allSeats={allSeats}
+        totalPrice={totalPrice}
+        bookingId={bookingId}
+        theaterCity={theaterCity}
+      />
 
-      {/* === Print-only BookMyShow-style ticket === */}
-      <div id="ptroot">
-        <div style={{
-          maxWidth: "620px", margin: "0 auto", fontFamily: "Arial, sans-serif",
-          border: "1px solid #d1d5db", borderRadius: "12px", overflow: "hidden",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.10)"
-        }}>
-          {/* Red header */}
-          <div style={{ background: "#e51937", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ color: "#fff", fontSize: "20px", fontWeight: "800", letterSpacing: "-0.5px" }}>TicketFlix</span>
-            <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px", fontWeight: "600" }}>Booking Confirmed </span>
-          </div>
 
-          {/* Movie name + tags */}
-          <div style={{ padding: "22px 24px 0" }}>
-            <div style={{ fontSize: "24px", fontWeight: "800", color: "#111", marginBottom: "8px" }}>{movie?.title}</div>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
-              {[show?.category, movie?.language, show?.format].filter(Boolean).map((tag) => (
-                <span key={tag} style={{ background: "#f3f4f6", color: "#374151", fontSize: "11px", padding: "3px 10px", borderRadius: "4px" }}>{tag}</span>
-              ))}
-            </div>
-
-            {/* Details grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 24px", marginBottom: "20px" }}>
-              {[
-                { label: "Cinema", value: theater?.name, sub: theater?.location || theaterCity },
-                { label: "Screen", value: show?.screenNumber || "N/A" },
-                { label: "Date", value: formatDate(date) },
-                { label: "Show Time", value: time },
-                { label: `Seats (${allSeats.length})`, value: allSeats.join(", ") || "N/A" },
-                { label: "Amount Paid", value: `?${Number(totalPrice || 0).toFixed(2)}` },
-              ].map(({ label, value, sub }) => (
-                <div key={label}>
-                  <div style={{ fontSize: "10px", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "3px" }}>{label}</div>
-                  <div style={{ fontSize: "14px", fontWeight: "700", color: "#111" }}>{value}</div>
-                  {sub && <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "1px" }}>{sub}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Tear line */}
-          <div style={{ display: "flex", alignItems: "center", padding: "0 0" }}>
-            <div style={{ width: "20px", height: "20px", borderRadius: "50%", background: "#f3f4f6", border: "1px solid #e5e7eb", marginLeft: "-10px", flexShrink: 0 }} />
-            <div style={{ flex: 1, borderTop: "2px dashed #d1d5db" }} />
-            <div style={{ width: "20px", height: "20px", borderRadius: "50%", background: "#f3f4f6", border: "1px solid #e5e7eb", marginRight: "-10px", flexShrink: 0 }} />
-          </div>
-
-          {/* QR + booking ID */}
-          <div style={{ padding: "20px 24px", display: "flex", alignItems: "center", gap: "24px", background: "#fafafa" }}>
-            <div style={{ flexShrink: 0 }}>
-              <QRCodeSVG value={qrValue} size={110} level="H" includeMargin={false} />
-            </div>
-            <div>
-              <div style={{ fontSize: "10px", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "6px" }}>Booking ID</div>
-              <div style={{ fontSize: "20px", fontWeight: "800", color: "#111", letterSpacing: "1.5px", marginBottom: "8px" }}>{bookingId}</div>
-              <div style={{ fontSize: "11px", color: "#6b7280" }}>Show this QR code at the cinema entry</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* === Screen view === */}
       <div className="min-h-screen bg-gray-50 py-20">
@@ -170,7 +138,7 @@ export default function TicketConfirmationPage() {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="grid md:grid-cols-3 gap-6 p-6">
 
-              {/* Left – Movie Details */}
+              {/* Left ï¿½ Movie Details */}
               <div className="md:col-span-2 space-y-4">
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{movie?.title}</h1>
@@ -225,7 +193,7 @@ export default function TicketConfirmationPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Amount Paid</p>
-                    <p className="font-bold text-lg text-gray-900">?{Number(totalPrice || 0).toFixed(2)}</p>
+                    <p className="font-bold text-lg text-gray-900">&#8377;{Number(totalPrice || 0).toFixed(2)}</p>
                   </div>
                 </div>
 
@@ -241,7 +209,7 @@ export default function TicketConfirmationPage() {
                 </div>
               </div>
 
-              {/* Right – QR Code */}
+              {/* Right ï¿½ QR Code */}
               <div className="md:col-span-1 flex flex-col items-center justify-start md:border-l-2 md:border-dashed md:border-gray-300 md:pl-6">
                 <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">YOUR TICKET QR CODE</p>
                 <div className="bg-white p-3 border-2 border-gray-200 rounded-lg inline-block">

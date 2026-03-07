@@ -27,6 +27,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "framer-motion": "^12.35.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
     "lucide-react": "^0.475.0",
     "mdb-react-ui-kit": "^9.0.0",
     "qrcode.react": "^4.2.0",
