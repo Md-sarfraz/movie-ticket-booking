@@ -7,6 +7,7 @@ const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [hoveredSeat, setHoveredSeat] = useState(null);
   const [bookedSeats, setBookedSeats] = useState([]);
+  const [lockedSeats, setLockedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const navigate = useNavigate();
@@ -41,9 +42,9 @@ const SeatSelection = () => {
   const rowLabels = "ABCDEFGHIJKL".split("");
   const seatsPerRow = 14; // 6 left + aisle + 7 right
   
-  // Fetch booked seats from backend
+  // Fetch seat status from backend (BOOKED = confirmed, LOCKED = payment in progress)
   useEffect(() => {
-    const fetchBookedSeats = async () => {
+    const fetchSeatStatus = async () => {
       if (!show?.showId) {
         setLoading(false);
         return;
@@ -51,29 +52,22 @@ const SeatSelection = () => {
 
       try {
         const response = await myAxios.get(
-          `/bookings/show/${show.showId}/booked-seats`
+          `/bookings/show/${show.showId}/seat-status`
         );
-        
-        // Expected format: ["A1", "A2", "B5", etc.]
-        setBookedSeats(response.data || []);
+        // Response: [{ seatLabel: "A1", status: "BOOKED" }, { seatLabel: "B3", status: "LOCKED" }, ...]
+        const seats = response.data || [];
+        setBookedSeats(seats.filter(s => s.status === 'BOOKED').map(s => s.seatLabel));
+        setLockedSeats(seats.filter(s => s.status === 'LOCKED').map(s => s.seatLabel));
       } catch (error) {
-        console.error("Error fetching booked seats:", error);
-        // Generate sample booked seats for demo
-        const sampleBooked = [];
-        for (let i = 0; i < rowLabels.length; i++) {
-          const randomSeats = Math.floor(Math.random() * 5) + 2;
-          for (let j = 0; j < randomSeats; j++) {
-            const seatNum = Math.floor(Math.random() * seatsPerRow) + 1;
-            sampleBooked.push(`${rowLabels[i]}${seatNum}`);
-          }
-        }
-        setBookedSeats(sampleBooked);
+        console.error("Error fetching seat status:", error);
+        setBookedSeats([]);
+        setLockedSeats([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBookedSeats();
+    fetchSeatStatus();
   }, [show?.showId]);
 
   // Get seat label for a given position
@@ -83,10 +77,16 @@ const SeatSelection = () => {
     return `${rowLabels[rowIndex]}${seatNum}`;
   };
 
-  // Check if a seat is booked
+  // Check if a seat is confirmed-booked
   const isSeatBooked = (rowIndex, seatIndex) => {
     const label = getSeatLabel(rowIndex, seatIndex);
     return bookedSeats.includes(label);
+  };
+
+  // Check if a seat is temporarily locked by another user's pending payment
+  const isSeatLocked = (rowIndex, seatIndex) => {
+    const label = getSeatLabel(rowIndex, seatIndex);
+    return lockedSeats.includes(label);
   };
 
   // Check if a seat is selected
@@ -98,7 +98,7 @@ const SeatSelection = () => {
 
   // Handle seat selection
   const handleSeatClick = (rowIndex, seatIndex) => {
-    if (isSeatBooked(rowIndex, seatIndex)) return;
+    if (isSeatBooked(rowIndex, seatIndex) || isSeatLocked(rowIndex, seatIndex)) return;
 
     const isSelected = isSeatSelected(rowIndex, seatIndex);
     const seatLabel = getSeatLabel(rowIndex, seatIndex);
@@ -361,14 +361,24 @@ const SeatSelection = () => {
                         }
 
                         const isBooked = isSeatBooked(rowIndex, seatIndex);
+                        const isLocked = isSeatLocked(rowIndex, seatIndex);
                         const isSelected = isSeatSelected(rowIndex, seatIndex);
                         const seatLabel = getSeatLabel(rowIndex, seatIndex);
+                        const isUnavailable = isBooked || isLocked;
 
                         const seatColor = isBooked
                           ? '#d1d5db'
+                          : isLocked
+                          ? '#f59e0b'
                           : isSelected
                           ? '#f97316'
                           : '#10b981';
+
+                        const seatTitle = isBooked
+                          ? `${seatLabel} — Sold`
+                          : isLocked
+                          ? `${seatLabel} — Temporarily reserved`
+                          : seatLabel;
 
                         return (
                           <button
@@ -376,10 +386,10 @@ const SeatSelection = () => {
                             onClick={() => handleSeatClick(rowIndex, seatIndex)}
                             onMouseEnter={() => setHoveredSeat({ row: rowIndex, index: seatIndex })}
                             onMouseLeave={() => setHoveredSeat(null)}
-                            disabled={isBooked}
-                            title={seatLabel}
+                            disabled={isUnavailable}
+                            title={seatTitle}
                             className={`transition-transform duration-150 ${
-                              !isBooked ? 'hover:scale-110 active:scale-95' : 'cursor-not-allowed'
+                              !isUnavailable ? 'hover:scale-110 active:scale-95' : 'cursor-not-allowed'
                             }`}
                             style={{ background: 'none', border: 'none', padding: 0 }}
                           >
@@ -411,7 +421,7 @@ const SeatSelection = () => {
 
               {/* Legend */}
               <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-gray-200">
-                {[{ color: '#10b981', label: 'Available' }, { color: '#d1d5db', label: 'Booked' }, { color: '#f97316', label: 'Selected' }].map(({ color, label }) => (
+                {[{ color: '#10b981', label: 'Available' }, { color: '#f59e0b', label: 'Reserved' }, { color: '#d1d5db', label: 'Booked' }, { color: '#f97316', label: 'Selected' }].map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-1.5">
                     <svg width="18" height="16" viewBox="0 0 22 20" xmlns="http://www.w3.org/2000/svg">
                       <rect x="2" y="0" width="18" height="12" rx="3" fill={color} />
@@ -426,14 +436,25 @@ const SeatSelection = () => {
 
               {/* Hover info */}
               <div className="text-center mt-3 h-10 flex items-center justify-center">
-                {hoveredSeat && !isSeatBooked(hoveredSeat.row, hoveredSeat.index) && (
-                  <div className="px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
-                    <span className="text-sm font-medium text-gray-700">
-                      Seat {getSeatLabel(hoveredSeat.row, hoveredSeat.index)} - ₹{seatPrice}
-                      {isSeatSelected(hoveredSeat.row, hoveredSeat.index) ? " (Selected)" : " (Available)"}
-                    </span>
-                  </div>
-                )}
+                {hoveredSeat && (() => {
+                  const r = hoveredSeat.row, i = hoveredSeat.index;
+                  if (isSeatBooked(r, i)) return null;
+                  if (isSeatLocked(r, i)) return (
+                    <div className="px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
+                      <span className="text-sm font-medium text-amber-700">
+                        Seat {getSeatLabel(r, i)} — Temporarily reserved by another user
+                      </span>
+                    </div>
+                  );
+                  return (
+                    <div className="px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
+                      <span className="text-sm font-medium text-gray-700">
+                        Seat {getSeatLabel(r, i)} - ₹{seatPrice}
+                        {isSeatSelected(r, i) ? " (Selected)" : " (Available)"}
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

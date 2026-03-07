@@ -124,7 +124,7 @@ const Movies = () => {
 
                 {/* Movies List */}
                 <div className='w-[77%] pt-14'>
-                    <h1 className='text-xl font-bold pl-4 pb-4'>Movies In <span className='text-red-500'>{selectedCity || 'Your City'}</span></h1>
+                    <h1 className='text-xl font-bold pl-4 pb-4'>Movies In <span className='text-red-500'>{selectedCity?.name || 'Your City'}</span></h1>
                     <div className='flex flex-col  items-center'>
 
                         <img src="./images/coming-soon-banner.avif" className='w-[97%] h-[70px] ' alt="" />
