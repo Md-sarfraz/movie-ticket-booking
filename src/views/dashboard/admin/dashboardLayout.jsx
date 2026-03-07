@@ -8,6 +8,7 @@ import UserProfile from '../user/userProfile'
 import UserList from './userList'
 import AddShowForm from '../../../components/addShowForm'
 import AddMoviePage from './addMoviePage'
+import EditMoviePage from './editMoviePage'
 import AddTheaterPage from './addTheaterPage'
 import ManageBookings from './manageBookings'
 import Reports from './reports'
@@ -26,6 +27,7 @@ const DashboardLayout = () => {
                     <Route path='/dashboard' element={<Dashboard/>}/>
                     <Route path='/movieList' element={<MovieList/>}/>
                     <Route path='/addMovie' element={<AddMoviePage/>}/>
+                    <Route path='/editMovie/:movieId' element={<EditMoviePage/>}/>
                     <Route path='/userList' element={<UserList/>}/>
                     <Route path='/theaterList' element={<TheaterList/>}/>
                     <Route path='/addTheater' element={<AddTheaterPage/>}/>

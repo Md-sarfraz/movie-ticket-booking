@@ -161,6 +161,7 @@ const MovieList = () => {
                     <button 
                       className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 delay-75"
                       title="Edit Movie"
+                      onClick={() => navigate(`/adminDashboard/editMovie/${movie.movieId}`)}
                     >
                       <RiEdit2Line className="text-lg" />
                     </button>
