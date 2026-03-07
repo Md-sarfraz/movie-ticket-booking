@@ -95,7 +95,7 @@ const Navbar = ({ onSearch }) => {
     { name: "Ahmedabad", image: "./images/Ahmedabad-img.webp" },
     { name: "Delhi", image: "./images/Delhi-img.avif" },
     { name: "Mumbai", image: "./images/Mumbai-img.avif" },
-    { name: "Bangaluru", image: "./images/Bengaluru-img.webp" },
+    { name: "Bengaluru", image: "./images/Bengaluru-img.webp" },
     { name: "Chandigarh", image: "./images/Chandigarh-img.avif" },
     { name: "Chennai", image: "./images/Chennai-img.avif" },
     { name: "Hyderabad", image: "./images/Hyderabad-img.webp" },
