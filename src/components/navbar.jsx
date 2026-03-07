@@ -17,6 +17,8 @@ const Navbar = ({ onSearch }) => {
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [dbCities, setDbCities] = useState([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
   const profileRef = useRef(null);
   const dispatch = useDispatch();
   const reduxUser = useSelector((state)=>state.auth.user);
@@ -90,28 +92,40 @@ const Navbar = ({ onSearch }) => {
     setIsMobileMenuOpen(false);
   }
 
-  // City data
-  const featuredCities = [
-    { name: "Ahmedabad", image: "./images/Ahmedabad-img.webp" },
-    { name: "Delhi", image: "./images/Delhi-img.avif" },
-    { name: "Mumbai", image: "./images/Mumbai-img.avif" },
-    { name: "Bengaluru", image: "./images/Bengaluru-img.webp" },
-    { name: "Chandigarh", image: "./images/Chandigarh-img.avif" },
-    { name: "Chennai", image: "./images/Chennai-img.avif" },
-    { name: "Hyderabad", image: "./images/Hyderabad-img.webp" },
-    { name: "Kolkata", image: "./images/Kolkata-img.avif" }
-  ];
+  // Image map for well-known cities (used for featured card display)
+  const featuredCityImages = {
+    "Ahmedabad": "./images/Ahmedabad-img.webp",
+    "Delhi": "./images/Delhi-img.avif",
+    "Mumbai": "./images/Mumbai-img.avif",
+    "Bengaluru": "./images/Bengaluru-img.webp",
+    "Chandigarh": "./images/Chandigarh-img.avif",
+    "Chennai": "./images/Chennai-img.avif",
+    "Hyderabad": "./images/Hyderabad-img.webp",
+    "Kolkata": "./images/Kolkata-img.avif"
+  };
 
-  const otherCities = [
-    "Ahmedabad", "Ajmer", "Amritsar", "Anand", "Armoor", "Aurangabad", "Bareilly", 
-    "Belagavi", "Belgaum", "Bengaluru", "Bharuch", "Bhilai", "Bhilwara", "Bhiwadi", 
-    "Bhopal", "Bhubaneswar", "Bilaspur", "Bokaro", "Burdwan", "Chandigarh", "Chennai", 
-    "Coimbatore", "Cuddalore", "Cuttack", "Darjeeling", "Dehradun", "Delhi", "Delhi-NCR",
-    "Dhanbad", "Dharwad", "Durgapur", "Faridabad", "Gandhinagar", "Ghaziabad", "Goa", 
-    "Gorakhpur", "Greater Noida", "Gulbarga", "Guntur", "Gurugram", "Guwahati", "Gwalior", 
-    "Howrah", "Hubli", "Hyderabad", "Indore", "Jaipur", "Jalandhar", "Jalgaon", "Jammu", 
-    "Jamnagar", "Jodhpur", "Jorhat", "Kakinada", "Kalyan", "Kanpur"
-  ];
+  // Fetch cities from DB whenever the menu opens so names always match the DB exactly
+  useEffect(() => {
+    if (!isShowMenu) return;
+    setCitiesLoading(true);
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+    fetch(`${baseUrl}/theater/cities`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status && Array.isArray(data.data)) {
+          setDbCities(data.data);
+        }
+      })
+      .catch(() => { /* keep dbCities as-is on error */ })
+      .finally(() => setCitiesLoading(false));
+  }, [isShowMenu]);
+
+  // Derive city lists from DB response so they always match DB values exactly
+  const featuredCities = dbCities
+    .filter(city => featuredCityImages[city])
+    .map(city => ({ name: city, image: featuredCityImages[city] }));
+
+  const otherCities = dbCities.filter(city => !featuredCityImages[city]);
 
   // Filter cities based on search query
   const filteredFeaturedCities = featuredCities.filter(city =>
@@ -184,12 +198,21 @@ const Navbar = ({ onSearch }) => {
                 )}
               </div>
 
-              {citySearchQuery && (
+              {citySearchQuery && !citiesLoading && (
                 <div className="mb-2 text-sm text-gray-600">
                   Found {filteredFeaturedCities.length + filteredOtherCities.length} cities
                 </div>
               )}
 
+              {citiesLoading && (
+                <div className="text-center py-6 text-gray-400 text-sm">Loading cities...</div>
+              )}
+
+              {!citiesLoading && dbCities.length === 0 && (
+                <div className="text-center py-6 text-gray-400 text-sm">No cities with theaters available yet.</div>
+              )}
+
+              {!citiesLoading && dbCities.length > 0 && <>
               <div className="grid grid-cols-2 gap-2 mb-6">
                 {filteredFeaturedCities.length > 0 ? (
                   filteredFeaturedCities.map((city, index) => (
@@ -258,6 +281,7 @@ const Navbar = ({ onSearch }) => {
                   </div>
                 )}
               </div>
+              </>}
             </div>
             }
           </div>
