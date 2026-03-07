@@ -29,13 +29,16 @@ const Home = () => {
         console.log('Popular Response:', popularRes);
 
         // Map API response to component-friendly format
+        // IMPORTANT: spread original movie first so backgroundImageUrl, movieId,
+        // director, trailer, castMember, crewMember etc. are always preserved.
         const mapMovieData = (movie) => ({
+          ...movie,                                        // keep ALL original fields
           id: movie.movieId,
           image: movie.postUrl || 'card-slider-img1.avif',
           title: movie.rating ? `${movie.rating}/10` : '8.0/10',
           movieName: movie.title || movie.movieName,
           posterUrl: movie.postUrl || '',
-          bannerUrl: movie.backgroundImageUrl || '',
+          bannerUrl: movie.backgroundImageUrl || '',       // slider uses this field name
           genres: movie.genres || [],
           language: movie.language || 'English',
           releaseDate: movie.releaseDate || '',

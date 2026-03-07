@@ -124,7 +124,7 @@ export default function Slider({ movies = [], loading = false }) {
                   {movie.description || ''}
                 </p>
                 <button
-                  onClick={() => navigate('/movieDetails', { state: { movie } })}
+                  onClick={() => navigate('/movieDetails', { state: { data: movie } })}
                   className='bg-red-500 hover:bg-white hover:text-red-500 text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors'
                 >
                   Get Ticket
