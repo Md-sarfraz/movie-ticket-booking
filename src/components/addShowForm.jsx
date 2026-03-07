@@ -165,7 +165,7 @@ const AddShowForm = () => {
             <option value="">Select a theater</option>
             {theaters.map((theater) => (
               <option key={theater.id} value={theater.id}>
-                {theater.name} - {theater.city}
+                {theater.name} - {theater.city?.name || theater.city}
               </option>
             ))}
           </select>

@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedCity } from '../store/slices/citySlice';
 import BookTheShowLogo from './bookTheShowLogo';
 import { FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { myAxios } from '../services/helper';
 
 const Navbar = ({ onSearch }) => {
   const [isShowMenu, setIsShowMenu] = useState(false);
@@ -18,7 +19,6 @@ const Navbar = ({ onSearch }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [dbCities, setDbCities] = useState([]);
-  const [citiesLoading, setCitiesLoading] = useState(false);
   const profileRef = useRef(null);
   const dispatch = useDispatch();
   const reduxUser = useSelector((state)=>state.auth.user);
@@ -76,6 +76,15 @@ const Navbar = ({ onSearch }) => {
     window.location.reload();
   };
 
+  // Fetch cities from DB on menu open
+  useEffect(() => {
+    if (isShowMenu && dbCities.length === 0) {
+      myAxios.get('/cities')
+        .then(res => setDbCities(res.data?.data || []))
+        .catch(err => console.error('Failed to fetch cities:', err));
+    }
+  }, [isShowMenu]);
+
   const handleShowMenu = () => {
     setIsShowMenu(!isShowMenu);
     if (isShowMenu) {
@@ -92,49 +101,26 @@ const Navbar = ({ onSearch }) => {
     setIsMobileMenuOpen(false);
   }
 
-  // Image map for well-known cities (used for featured card display)
-  const featuredCityImages = {
+  // Known city images (matched by city name from DB)
+  const cityImageMap = {
     "Ahmedabad": "./images/Ahmedabad-img.webp",
     "Delhi": "./images/Delhi-img.avif",
     "Mumbai": "./images/Mumbai-img.avif",
+    "Bangaluru": "./images/Bengaluru-img.webp",
     "Bengaluru": "./images/Bengaluru-img.webp",
+    "Bangalore": "./images/Bengaluru-img.webp",
     "Chandigarh": "./images/Chandigarh-img.avif",
     "Chennai": "./images/Chennai-img.avif",
     "Hyderabad": "./images/Hyderabad-img.webp",
-    "Kolkata": "./images/Kolkata-img.avif"
+    "Kolkata": "./images/Kolkata-img.avif",
   };
 
-  // Fetch cities from DB whenever the menu opens so names always match the DB exactly
-  useEffect(() => {
-    if (!isShowMenu) return;
-    setCitiesLoading(true);
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-    fetch(`${baseUrl}/theater/cities`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status && Array.isArray(data.data)) {
-          setDbCities(data.data);
-        }
-      })
-      .catch(() => { /* keep dbCities as-is on error */ })
-      .finally(() => setCitiesLoading(false));
-  }, [isShowMenu]);
-
-  // Derive city lists from DB response so they always match DB values exactly
-  const featuredCities = dbCities
-    .filter(city => featuredCityImages[city])
-    .map(city => ({ name: city, image: featuredCityImages[city] }));
-
-  const otherCities = dbCities.filter(city => !featuredCityImages[city]);
-
-  // Filter cities based on search query
-  const filteredFeaturedCities = featuredCities.filter(city =>
+  // Derive featured / other from DB cities (fall back to empty list until loaded)
+  const filteredDbCities = dbCities.filter(city =>
     city.name.toLowerCase().includes(citySearchQuery.toLowerCase())
   );
-
-  const filteredOtherCities = otherCities.filter(city =>
-    city.toLowerCase().includes(citySearchQuery.toLowerCase())
-  );
+  const filteredFeaturedCities = filteredDbCities.filter(city => cityImageMap[city.name]);
+  const filteredOtherCities = filteredDbCities.filter(city => !cityImageMap[city.name]);
 
   // Split other cities into two columns
   const midPoint = Math.ceil(filteredOtherCities.length / 2);
@@ -145,8 +131,9 @@ const Navbar = ({ onSearch }) => {
     setCitySearchQuery(e.target.value);
   };
 
-  const handleCitySelect = (cityName) => {
-    dispatch(setSelectedCity(cityName));
+  const handleCitySelect = (city) => {
+    // city is a DB city object { id, name }
+    dispatch(setSelectedCity({ id: city.id, name: city.name }));
     setIsShowMenu(false);
     setCitySearchQuery("");
   };
@@ -167,7 +154,7 @@ const Navbar = ({ onSearch }) => {
             >
               <i className="fa-solid fa-location-dot text-base md:text-lg text-red-500 group-hover:scale-110 transition-transform"></i>
               <span className='text-xs md:text-sm font-medium text-gray-700'>
-                {selectedCity || 'Select City'}
+                {selectedCity?.name || 'Select City'}
               </span>
               <i className="fa-solid fa-chevron-down text-xs text-gray-400 group-hover:text-red-500 transition-colors"></i>
             </button>
@@ -198,34 +185,25 @@ const Navbar = ({ onSearch }) => {
                 )}
               </div>
 
-              {citySearchQuery && !citiesLoading && (
+              {citySearchQuery && (
                 <div className="mb-2 text-sm text-gray-600">
                   Found {filteredFeaturedCities.length + filteredOtherCities.length} cities
                 </div>
               )}
 
-              {citiesLoading && (
-                <div className="text-center py-6 text-gray-400 text-sm">Loading cities...</div>
-              )}
-
-              {!citiesLoading && dbCities.length === 0 && (
-                <div className="text-center py-6 text-gray-400 text-sm">No cities with theaters available yet.</div>
-              )}
-
-              {!citiesLoading && dbCities.length > 0 && <>
               <div className="grid grid-cols-2 gap-2 mb-6">
                 {filteredFeaturedCities.length > 0 ? (
                   filteredFeaturedCities.map((city, index) => (
                     <div 
                       key={index} 
                       className="relative group cursor-pointer"
-                      onClick={() => handleCitySelect(city.name)}
+                      onClick={() => handleCitySelect(city)}
                     >
-                      <img src={city.image} alt={city.name} className="rounded-lg w-full h-full object-cover" />
+                      <img src={cityImageMap[city.name]} alt={city.name} className="rounded-lg w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black bg-opacity-40 flex items-end p-2 rounded-lg transition-opacity group-hover:bg-opacity-60">
                         <p className="text-white font-semibold">{city.name}</p>
                       </div>
-                      {selectedCity === city.name && (
+                      {selectedCity?.id === city.id && (
                         <div className="absolute top-2 right-2 bg-red-500 rounded-full p-1">
                           <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -257,9 +235,9 @@ const Navbar = ({ onSearch }) => {
                             e.preventDefault();
                             handleCitySelect(city);
                           }}
-                          className={`hover:text-red-400 transition-colors ${selectedCity === city ? 'text-red-500 font-semibold' : ''}`}
+                          className={`hover:text-red-400 transition-colors ${selectedCity?.id === city.id ? 'text-red-500 font-semibold' : ''}`}
                         >
-                          {city}
+                          {city.name}
                         </a>
                       ))}
                     </div>
@@ -272,16 +250,15 @@ const Navbar = ({ onSearch }) => {
                             e.preventDefault();
                             handleCitySelect(city);
                           }}
-                          className={`hover:text-red-400 transition-colors ${selectedCity === city ? 'text-red-500 font-semibold' : ''}`}
+                          className={`hover:text-red-400 transition-colors ${selectedCity?.id === city.id ? 'text-red-500 font-semibold' : ''}`}
                         >
-                          {city}
+                          {city.name}
                         </a>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
-              </>}
             </div>
             }
           </div>

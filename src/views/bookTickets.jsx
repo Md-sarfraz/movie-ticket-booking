@@ -26,9 +26,6 @@ const BookTickets = () => {
   const [shows, setShows] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
   const [groupedShows, setGroupedShows] = useState({});
-  // Local city filter — seeded from redux city, "" means All Cities
-  const [localCity, setLocalCity] = useState(selectedCity || "");
-  const [availableCities, setAvailableCities] = useState([]);
 
   // ✅ STOP CRASH IF MOVIE IS MISSING
   if (!movie) {
@@ -63,8 +60,8 @@ const BookTickets = () => {
       console.log("📅 Formatted date:", formattedDate);
       
       const showsData = await getShowsByMovie(
-        movie.movieId,
-        localCity || null, // null = all cities
+        movie.movieId, 
+        selectedCity?.id || null, // Pass cityId; null = all cities
         formattedDate
       );
 
@@ -73,16 +70,7 @@ const BookTickets = () => {
       
       const showsArray = Array.isArray(showsData) ? showsData : [];
       setShows(showsArray);
-
-      // Collect unique cities from returned shows for the dropdown
-      const cities = [...new Set(
-        showsArray.map(s => s.theater?.city).filter(Boolean)
-      )].sort();
-      setAvailableCities(prev => {
-        const merged = [...new Set([...prev, ...cities])].sort();
-        return merged;
-      });
-
+      
       // Group shows by theater
       const grouped = showsArray.reduce((acc, show) => {
         const theaterId = show.theater?.id || show.theater?.theaterId;
@@ -112,7 +100,7 @@ const BookTickets = () => {
     try {
       if (!movie?.movieId) return;
       
-      const dates = await getAvailableDates(movie.movieId, localCity || null);
+      const dates = await getAvailableDates(movie.movieId, selectedCity?.id || null);
       setAvailableDates(dates.map(d => new Date(d)));
       console.log("📅 Available dates:", dates);
       console.log("📅 Number of available dates:", dates.length);
@@ -127,7 +115,7 @@ const BookTickets = () => {
     if (movie?.movieId) {
       fetchAvailableDates();
     }
-  }, [movie, localCity]);
+  }, [movie, selectedCity]);
 
   useEffect(() => {
     if (movie?.movieId && selectedDate) {
@@ -136,12 +124,7 @@ const BookTickets = () => {
       setSelectedShow(null);
       setSelectedTheater(null);
     }
-  }, [movie, localCity, selectedDate]);
-
-  // Also seed localCity when redux city changes (e.g. user changes city in navbar)
-  useEffect(() => {
-    setLocalCity(selectedCity || "");
-  }, [selectedCity]);
+  }, [movie, selectedCity, selectedDate]);
 
   const getNextDays = () => {
     const days = [];
@@ -231,29 +214,24 @@ const BookTickets = () => {
             </button>
           </div>
 
-          {/* Inline City Filter */}
-          <div className="mt-4 flex items-center gap-3">
-            <MapPin size={16} className="text-red-500 flex-shrink-0" />
-            <select
-              value={localCity}
-              onChange={e => {
-                setLocalCity(e.target.value);
-                setSelectedShow(null);
-                setSelectedTheater(null);
-              }}
-              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-400"
-            >
-              <option value="">All Cities</option>
-              {availableCities.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            {localCity && (
-              <span className="text-xs text-gray-500">
-                Showing theaters in <span className="font-semibold text-red-600">{localCity}</span>
+          {/* City Filter Info */}
+          {selectedCity && (
+            <div className="mt-3 flex items-center gap-2 text-sm bg-red-50 p-3 rounded-lg">
+              <MapPin size={16} className="text-red-500" />
+              <span className="text-gray-700">
+                Showing theaters in <span className="font-semibold text-red-600">{selectedCity.name}</span>
               </span>
-            )}
-          </div>
+            </div>
+          )}
+          
+          {!selectedCity && (
+            <div className="mt-3 flex items-center gap-2 text-sm bg-blue-50 p-3 rounded-lg">
+              <MapPin size={16} className="text-blue-600" />
+              <span className="text-gray-700">
+                Showing theaters from all cities. Select a city from the navigation bar to filter.
+              </span>
+            </div>
+          )}
 
           {showDetails && (
             <div className="mt-4 bg-gray-50 p-4 rounded">
@@ -308,10 +286,10 @@ const BookTickets = () => {
             <div className="px-6 py-8 text-center text-gray-500">
               <MapPin className="inline-block mb-2" size={32} />
               <p className="font-semibold">No shows available</p>
-              {localCity && (
+              {selectedCity && (
                 <div className="mt-2">
                   <p className="text-sm">
-                    for {movie.title} in <span className="font-bold text-red-600">{localCity}</span> on{" "}
+                    for {movie.title} in <span className="font-bold text-red-600">{selectedCity.name}</span> on{" "}
                     {selectedDate.toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -320,12 +298,12 @@ const BookTickets = () => {
                   </p>
                   <div className="mt-4 p-4 bg-yellow-50 rounded-lg max-w-md mx-auto">
                     <p className="text-sm text-yellow-800">
-                      💡 <strong>Tip:</strong> Select <strong>All Cities</strong> from the dropdown above to see all shows.
+                      💡 <strong>Tip:</strong> Try selecting a different city or remove city filter to see all available shows.
                     </p>
                   </div>
                 </div>
               )}
-              {!localCity && (
+              {!selectedCity && (
                 <p className="text-sm mt-2">
                   for {movie.title} on{" "}
                   {selectedDate.toLocaleDateString("en-US", {
@@ -354,7 +332,7 @@ const BookTickets = () => {
                     {theater.city && (
                       <p className="text-xs text-gray-500 flex items-center mt-1">
                         <MapPin size={12} className="mr-1" />
-                        {theater.city}
+                        {theater.city?.name || theater.city}
                       </p>
                     )}
                     <p className="text-xs text-gray-400 mt-1">

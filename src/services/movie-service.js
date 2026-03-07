@@ -48,3 +48,15 @@ export const createBulkMovies = async (movies) => {
     const response = await myAxios.post('/movie/createBulk', movies);
     return response.data;
 };
+
+// Fetch a single movie by ID
+export const getMovieById = async (id) => {
+    const response = await myAxios.get(`/movie/findMovieById/${id}`);
+    return response.data.data;
+};
+
+// Update a movie (all images as URLs)
+export const updateMovie = async (id, movieData) => {
+    const response = await myAxios.put(`/movie/update/${id}`, movieData);
+    return response.data;
+};

@@ -1,20 +1,20 @@
 import { myAxios } from "./helper";
 
 // Get shows by movie with optional filters
-export const getShowsByMovie = async (movieId, city = null, date = null) => {
+export const getShowsByMovie = async (movieId, cityId = null, date = null) => {
   try {
     console.log("========================================");
     console.log("🌐 showService.getShowsByMovie");
     console.log("   movieId:", movieId);
-    console.log("   city:", city);
+    console.log("   cityId:", cityId);
     console.log("   date:", date);
     
     let url = `/shows/by-movie/${movieId}`;
     const params = new URLSearchParams();
     
-    if (city) {
-      params.append('city', city);
-      console.log("   ✅ Adding city to query:", city);
+    if (cityId) {
+      params.append('cityId', cityId);
+      console.log("   ✅ Adding cityId to query:", cityId);
     }
     if (date) {
       // Format date as YYYY-MM-DD using local timezone
@@ -49,7 +49,7 @@ export const getShowsByMovie = async (movieId, city = null, date = null) => {
         console.log(`   Show ${i+1}:`, {
           id: show.showId,
           theater: show.theater?.name,
-          city: show.theater?.city,
+          city: show.theater?.city?.name,
           time: show.showTime,
           date: show.showDate
         });
@@ -79,11 +79,11 @@ export const getUpcomingShows = async (movieId) => {
 };
 
 // Get available dates for a movie
-export const getAvailableDates = async (movieId, city = null) => {
+export const getAvailableDates = async (movieId, cityId = null) => {
   try {
     let url = `/shows/dates/${movieId}`;
-    if (city) {
-      url += `?city=${encodeURIComponent(city)}`;
+    if (cityId) {
+      url += `?cityId=${cityId}`;
     }
     const response = await myAxios.get(url);
     return response.data.data;
