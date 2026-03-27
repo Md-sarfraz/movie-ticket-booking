@@ -93,7 +93,7 @@ const LoginPage = () => {
             type="email"
             placeholder="Email"
             className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={setLoginDeatail.email}
+            value={loginDetail.email}
             onChange={(e) => handleOnChange(e, "email")}
           />
           <div className="relative">
@@ -101,7 +101,7 @@ const LoginPage = () => {
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 w-full pr-12"
-              value={setLoginDeatail.password}
+              value={loginDetail.password}
               onChange={(e) => handleOnChange(e, "password")}
             />
             <button

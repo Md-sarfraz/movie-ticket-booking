@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthStorage, getStoredAuth } from '../auth/storage';
 export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 export const myAxios=axios.create({
     baseURL:BASE_URL
@@ -7,8 +8,8 @@ export const myAxios=axios.create({
 // Add request interceptor to automatically add auth token
 myAxios.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
-        if (token && token !== 'null') {
+        const { token } = getStoredAuth();
+        if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -23,11 +24,10 @@ myAxios.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
+            // Clear expired/invalid token and redirect to login
+            clearAuthStorage();
             const isAuthEndpoint = error.config?.url?.includes('/auth/');
-            if (isAuthEndpoint) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('role');
-                localStorage.removeItem('user');
+            if (!isAuthEndpoint) {
                 window.location.href = '/loginPage';
             }
         }

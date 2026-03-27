@@ -1,34 +1,24 @@
+import { clearAuthStorage, getStoredAuth, setStoredAuth } from './storage';
+
 //isLoggedIn
 
 export const isLoggedIn=()=>{
-    if(localStorage.getItem("user")==null){
-        return false;
-    }
-    else{
-        return true;
-    }
+    const { token, user } = getStoredAuth();
+    return !!token && !!user;
 }
 //doLogin
 export const doLogin=(data,next)=>{
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("role", data.role);
-    localStorage.setItem("user", JSON.stringify(data));
+    setStoredAuth({ token: data.token, role: data.role, user: data });
     next();
 }
 
 //doLogout
 export const doLogout=(next)=>{
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("user");
+    clearAuthStorage();
     next();
 }
 //get current user
 export const getCurrentUser=()=>{
-    if(isLoggedIn()){
-        return JSON.parse(localStorage.getItem("data"))?.user;
-    }
-    else{
-        undefined;
-    }
+    const { user } = getStoredAuth();
+    return user;
 }

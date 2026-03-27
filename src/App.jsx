@@ -29,6 +29,7 @@ import EventDetails from './views/eventDetails';
 import PaymentPage from './views/paymentPage';
 import TicketPage from './views/ticketPage';
 import UserList from './views/dashboard/admin/userList';
+import { clearAuthStorage, getStoredAuth } from './auth/storage';
 
 function App() {
   //app.jsx
@@ -50,26 +51,17 @@ function App() {
       // Only redirect if it's a critical auth error, not just data fetch failure
       if (error.response?.status === 401) {
         console.warn("Invalid token, clearing auth data");
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('user');
+        clearAuthStorage();
         // Don't redirect here - let user continue browsing
       }
     }
   }
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
-      const userStr = localStorage.getItem("user");
-      if (userStr && userStr !== "undefined") {
-        const User = JSON.parse(userStr);
-        console.log("user:", User);
-        // Immediately dispatch user from localStorage to avoid null state
-        if (User?.id) {
-          dispatch(login(User));
-          handleGetUserDetails(User.id);
-        }
-      }
+    const { token, user } = getStoredAuth();
+    if (token && user?.id) {
+      dispatch(login(user));
+      handleGetUserDetails(user.id);
     }
   }, [])
 

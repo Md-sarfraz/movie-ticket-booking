@@ -11,6 +11,8 @@ import { setSelectedCity } from '../store/slices/citySlice';
 import BookTheShowLogo from './bookTheShowLogo';
 import { FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { myAxios } from '../services/helper';
+import NotificationBell from './NotificationBell';
+import { clearAuthStorage, getStoredAuth } from '../auth/storage';
 
 const Navbar = ({ onSearch }) => {
   const [isShowMenu, setIsShowMenu] = useState(false);
@@ -27,15 +29,8 @@ const Navbar = ({ onSearch }) => {
   // Fallback to localStorage if Redux state is not populated yet
   const getUser = () => {
     if (reduxUser) return reduxUser;
-    const userStr = localStorage.getItem('user');
-    if (userStr && userStr !== 'undefined') {
-      try {
-        return JSON.parse(userStr);
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
+    const { user } = getStoredAuth();
+    return user;
   };
   
   const user = getUser();
@@ -54,22 +49,22 @@ const Navbar = ({ onSearch }) => {
   const navigate = useNavigate();
 
   const getDashboardPath = () => {
-    const role = localStorage.getItem('role');
+    const { role } = getStoredAuth();
     return role === 'ADMIN' ? '/adminDashboard' : '/userDashboard';
   };
 
   const getProfilePath = () => {
-    const role = localStorage.getItem('role');
+    const { role } = getStoredAuth();
     return role === 'ADMIN' ? '/adminDashboard/profile' : '/userDashboard/userProfile';
   };
 
-  const getSettingsPath = () => {
-    const role = localStorage.getItem('role');
-    return role === 'ADMIN' ? '/adminDashboard/settings' : '/userDashboard/settings';
+  const getSecondaryActionPath = () => {
+    const { role } = getStoredAuth();
+    return role === 'ADMIN' ? '/adminDashboard/profile' : '/userDashboard/settings';
   };
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearAuthStorage();
     setShowLogoutConfirm(false);
     setShowProfileDropdown(false);
     navigate('/');
@@ -138,15 +133,19 @@ const Navbar = ({ onSearch }) => {
     setCitySearchQuery("");
   };
 
-  const userRole = localStorage.getItem('role');
+  const { role: userRole } = getStoredAuth();
+  const isAdmin = userRole === 'ADMIN';
+  const logoRedirectPath = isAdmin ? '/adminDashboard' : '/';
 
   return (
     <div className='flex h-16 md:h-20 items-center justify-between border-b-2 border-gray-100 shadow-lg fixed w-full bg-white/95 backdrop-blur-md z-[100] px-4 md:px-8'>
       {/* Left section - Logo */}
       <div className='flex items-center gap-3 md:gap-6'>
-        <BookTheShowLogo/>
+        <Link to={logoRedirectPath} aria-label={isAdmin ? 'Go to admin dashboard' : 'Go to home page'}>
+          <BookTheShowLogo/>
+        </Link>
         
-        {userRole !== 'ADMIN' && (
+        {!isAdmin && (
           <div className='relative flex items-center'>
             <button 
               className='flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 group' 
@@ -266,7 +265,7 @@ const Navbar = ({ onSearch }) => {
       </div>
 
       {/* Desktop Navigation */}
-      <ul className='hidden lg:flex gap-8 justify-center text-sm font-medium'>
+      {!isAdmin && <ul className='hidden lg:flex gap-8 justify-center text-sm font-medium'>
         <li className='group flex justify-center flex-col items-center relative'>
           <Link to='/' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>Home</Link>
           <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
@@ -287,14 +286,20 @@ const Navbar = ({ onSearch }) => {
           <Link to='/about' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>About</Link>
           <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
         </li>
-      </ul>
+      </ul>}
 
       {/* Right section */}
       <ul className='flex flex-row gap-3 md:gap-6 items-center'>
         {/* Search - hidden on very small screens */}
-        <li className='relative hidden sm:block'>
+        <li className={`relative hidden sm:block ${isAdmin ? 'hidden' : ''}`}>
           <SearchBar/>
         </li>
+
+        {isAdmin && (
+          <li className='flex items-center'>
+            <NotificationBell />
+          </li>
+        )}
         
         {/* Login/User Profile */}
         <li className="flex items-center justify-center">
@@ -348,12 +353,12 @@ const Navbar = ({ onSearch }) => {
                       My Profile
                     </Link>
                     <Link
-                      to={getSettingsPath()}
+                      to={getSecondaryActionPath()}
                       onClick={() => setShowProfileDropdown(false)}
                       className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <FaCog size={11} className="text-gray-400" />
-                      Settings
+                      {isAdmin ? 'Change Password' : 'Settings'}
                     </Link>
                   </div>
 
@@ -373,7 +378,7 @@ const Navbar = ({ onSearch }) => {
         </li>
 
         {/* Mobile Menu Button */}
-        <li className='lg:hidden'>
+        {!isAdmin && <li className='lg:hidden'>
           <button
             onClick={toggleMobileMenu}
             className="p-2 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg focus:outline-none transition-all duration-200"
@@ -387,11 +392,11 @@ const Navbar = ({ onSearch }) => {
               )}
             </svg>
           </button>
-        </li>
+        </li>}
       </ul>
 
       {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
+      {!isAdmin && isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-16 md:top-20 bg-white z-50 shadow-2xl">
           <div className="flex flex-col p-6 space-y-2">
             {/* Mobile Search */}

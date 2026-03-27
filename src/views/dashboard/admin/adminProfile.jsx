@@ -11,6 +11,7 @@ import {
   Edit
 } from 'lucide-react';
 import { getAdminProfile, updateAdminProfile, updatePassword, uploadAvatar } from '../../../services/admin-profile-service';
+import { getStoredAuth, setStoredAuth } from '../../../auth/storage';
 
 export default function AdminProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -146,8 +147,10 @@ export default function AdminProfile() {
         setIsEditing(false);
         setTimeout(() => setSuccess(''), 3000);
         // Update user in localStorage
-        const user = JSON.parse(localStorage.getItem('user'));
-        localStorage.setItem('user', JSON.stringify({ ...user, ...response.data }));
+        const { token, role, user } = getStoredAuth();
+        if (token && role && user) {
+          setStoredAuth({ token, role, user: { ...user, ...response.data } });
+        }
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to update profile');
