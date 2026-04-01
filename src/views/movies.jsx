@@ -62,15 +62,16 @@ const Movies = () => {
     };
 
     useEffect(() => {
-        fetchMovies();
-        setCurrentPage(1); // Reset to first page when filters change
-        console.log("Selected Filters:", { selectedLanguage, selectedGenre, selectedFormat });
-    }, [selectedLanguage, selectedGenre, selectedFormat]);
+        const query = searchInput?.toString().trim();
+        if (query) {
+            searchMovie();
+        } else {
+            fetchMovies();
+        }
 
-    useEffect(() => {
-        searchMovie();
-        setCurrentPage(1); // Reset to first page when searching
-    }, [searchInput])
+        setCurrentPage(1); // Reset to first page when filters/search change
+        console.log("Selected Filters:", { selectedLanguage, selectedGenre, selectedFormat });
+    }, [selectedLanguage, selectedGenre, selectedFormat, searchInput]);
     
     const navigate = useNavigate();
     const handleClick = (movie) => {
