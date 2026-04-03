@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { FaShoppingCart, FaStar, FaRegStar, FaStarHalfAlt } from 'react-icons/fa';
 import { myAxios } from '@/services/helper'
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from "react-redux";
-import { setSearchInput } from '@/store/slices/searchSlice';
+import { useSelector } from "react-redux";
 import PaginationDesign from '@/components/paginationDesign';
 
 const Movies = () => {
@@ -22,16 +21,14 @@ const Movies = () => {
     const itemsPerPage = 12; // Show 12 movies per page
     
     // --------------searching------------
-
+ 
     // const dispatch = useDispatch();
     const searchInput = useSelector((state) => state.search.searchInput);
     const selectedCity = useSelector((state) => state.city.selectedCity);
 
-    const searchMovie = async () => {
+    const searchMovie = async (title) => {
         try {
-            const response = await myAxios.get(
-                `/movie/searchByTitle?title=${searchInput?.toString()}`
-            );
+            const response = await myAxios.get(`/movie/searchByTitle?title=${encodeURIComponent(title)}`);
             setMovies(response.data.data);
         } catch (error) {
             console.error("Error searching movies:", error);
@@ -62,16 +59,19 @@ const Movies = () => {
     };
 
     useEffect(() => {
-        const query = searchInput?.toString().trim();
-        if (query) {
-            searchMovie();
-        } else {
-            fetchMovies();
-        }
-
-        setCurrentPage(1); // Reset to first page when filters/search change
+        const normalizedSearch = (searchInput ?? "").toString().trim();
+        if (normalizedSearch) return;
+        fetchMovies();
+        setCurrentPage(1); // Reset to first page when filters change
         console.log("Selected Filters:", { selectedLanguage, selectedGenre, selectedFormat });
     }, [selectedLanguage, selectedGenre, selectedFormat, searchInput]);
+
+    useEffect(() => {
+        const normalizedSearch = (searchInput ?? "").toString().trim();
+        if (!normalizedSearch) return;
+        searchMovie(normalizedSearch);
+        setCurrentPage(1); // Reset to first page when searching
+    }, [searchInput])
     
     const navigate = useNavigate();
     const handleClick = (movie) => {
