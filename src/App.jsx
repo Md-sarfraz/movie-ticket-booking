@@ -93,23 +93,23 @@ function App() {
         <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path='/' element={<PageTransition><Home /></PageTransition>} />
-          <Route path='/about' element={<PageTransition><About /></PageTransition>} />
-          <Route path='/movies' element={<PageTransition><Movies /></PageTransition>} />
-          <Route path='/contact' element={<PageTransition><Contact /></PageTransition>} />
-          <Route path='/event' element={<PageTransition><Event /></PageTransition>} />
-          <Route path='/ticketPage' element={<PageTransition><TicketPage /></PageTransition>} />
+          <Route path='/about' element={<PageTransition><ProtectedRoute><About /></ProtectedRoute></PageTransition>} />
+          <Route path='/movies' element={<PageTransition><ProtectedRoute><Movies /></ProtectedRoute></PageTransition>} />
+          <Route path='/contact' element={<PageTransition><ProtectedRoute><Contact /></ProtectedRoute></PageTransition>} />
+          <Route path='/event' element={<PageTransition><ProtectedRoute><Event /></ProtectedRoute></PageTransition>} />
+          <Route path='/ticketPage' element={<PageTransition><ProtectedRoute><TicketPage /></ProtectedRoute></PageTransition>} />
           <Route path='/loginPage' element={<PageTransition><LoginPage /></PageTransition>} />
           <Route path='/signUpPage' element={<PageTransition><SignUpPage /></PageTransition>} />
-          <Route path='/movieDetails' element={<PageTransition><MovieDetails /></PageTransition>} />
-          <Route path='/eventDetails' element={<PageTransition><EventDetails /></PageTransition>} />
-          <Route path='/bookTickets' element={<PageTransition><BookTickets /></PageTransition>} />
-          <Route path='/seatSelection' element={<PageTransition><SeatSelection /></PageTransition>} />
-          <Route path='/payment' element={<PageTransition><PaymentPage /></PageTransition>} />
-          <Route path='/paymentDetails' element={<PageTransition><PaymentDetails /></PageTransition>} />
+          <Route path='/movieDetails' element={<PageTransition><ProtectedRoute><MovieDetails /></ProtectedRoute></PageTransition>} />
+          <Route path='/eventDetails' element={<PageTransition><ProtectedRoute><EventDetails /></ProtectedRoute></PageTransition>} />
+          <Route path='/bookTickets' element={<PageTransition><ProtectedRoute><BookTickets /></ProtectedRoute></PageTransition>} />
+          <Route path='/seatSelection' element={<PageTransition><ProtectedRoute><SeatSelection /></ProtectedRoute></PageTransition>} />
+          <Route path='/payment' element={<PageTransition><ProtectedRoute><PaymentPage /></ProtectedRoute></PageTransition>} />
+          <Route path='/paymentDetails' element={<PageTransition><ProtectedRoute><PaymentDetails /></ProtectedRoute></PageTransition>} />
           <Route path='/adminLogin' element={<PageTransition><AdminLogin /></PageTransition>} />
           <Route path='/adminDashboard/*' element={<PageTransition><ProtectedRoute requiredRole="ADMIN"><AdminDashboard /></ProtectedRoute></PageTransition>} />
-          <Route path='/paymentPage' element={<PageTransition><PaymentPage /></PageTransition>} />
-          <Route path='/userList' element={<PageTransition><UserList /></PageTransition>} />
+          <Route path='/paymentPage' element={<PageTransition><ProtectedRoute><PaymentPage /></ProtectedRoute></PageTransition>} />
+          <Route path='/userList' element={<PageTransition><ProtectedRoute requiredRole="ADMIN"><UserList /></ProtectedRoute></PageTransition>} />
           <Route path='/userDashboard/*' element={<PageTransition><ProtectedRoute requiredRole="USER"><UserDashboardLayout /></ProtectedRoute></PageTransition>} />
         </Routes>
         </AnimatePresence>
