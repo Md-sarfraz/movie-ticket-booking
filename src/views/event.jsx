@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import CardSlider from '../components/cardSlider';
 import Banner from '../components/banner';
 import { Calendar, Search, Filter, MapPin } from 'lucide-react';
 import EventSlider from '@/components/eventSlider';
 import PaginationDesign from '@/components/paginationDesign';
-import { myAxios } from '@/services/helper';
 import { useNavigate } from 'react-router-dom';
+import { getAllEvents } from '@/services/event-service';
 
 const Event = () => {
     const [events, setEvents] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState('All Locations');
     
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -16,16 +17,8 @@ const Event = () => {
 
     const fetchEvents = async () => {
         try {
-            const response = await myAxios.get("/events/findAll");
-            
-            if (response.status !== 200) {
-                throw new Error("Failed to fetch events");
-            }
-
-
-            console.log("response is-", response);
-            setEvents(response?.data?.data);
-            console.log("printing the events :",events)
+            const data = await getAllEvents();
+            setEvents(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error fetching events:", error);
         }
@@ -37,18 +30,46 @@ const Event = () => {
     
     const navigate = useNavigate();
     const handleClick = (event) => {
-        navigate("/eventDetails", {
+        navigate(`/eventDetails/${event.id}`, {
             state: {
                 data: event
             }
         })
     }
 
+    // Categories for filtering
+    const categories = ["All", "Music", "Sports", "Theater", "Comedy", "Food", "Arts"];
+    const [selectedCategory, setSelectedCategory] = useState("All");
+
+    const availableLocations = [
+        'All Locations',
+        ...Array.from(new Set(events.map((event) => event.location).filter(Boolean))),
+    ];
+
+    const filteredEvents = events.filter((event) => {
+        const categoryMatch =
+            selectedCategory === 'All' ||
+            (event.category || '').toLowerCase() === selectedCategory.toLowerCase();
+
+        const locationMatch =
+            selectedLocation === 'All Locations' ||
+            (event.location || '') === selectedLocation;
+
+        const query = searchQuery.trim().toLowerCase();
+        const textMatch =
+            !query ||
+            [event.title, event.category, event.location, event.description]
+                .filter(Boolean)
+                .some((value) => value.toLowerCase().includes(query));
+
+        return categoryMatch && locationMatch && textMatch;
+    });
+
     // Pagination logic
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentEvents = events.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(events.length / itemsPerPage);
+    const currentEvents = filteredEvents.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -58,12 +79,8 @@ const Event = () => {
 
 
 
-    // Featured events (a subset of all events)
-    const featuredEvents = events.slice(0, 6);
-
-    // Categories for filtering
-    const categories = ["All", "Music", "Sports", "Theater", "Comedy", "Food", "Arts"];
-    const [selectedCategory, setSelectedCategory] = useState("All");
+    // Featured events (a subset of filtered events)
+    const featuredEvents = filteredEvents.slice(0, 6);
 
     return (
         <div className="w-full min-h-screen bg-gray-50">
@@ -84,6 +101,11 @@ const Event = () => {
                             <input
                                 type="text"
                                 placeholder="Search for events, artists, venues..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
@@ -91,11 +113,17 @@ const Event = () => {
                         {/* Location Dropdown */}
                         <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 min-w-32">
                             <MapPin size={16} className="text-gray-500 mr-2" />
-                            <select className="bg-transparent focus:outline-none text-gray-700">
-                                <option>New York</option>
-                                <option>Los Angeles</option>
-                                <option>Chicago</option>
-                                <option>Miami</option>
+                            <select
+                                className="bg-transparent focus:outline-none text-gray-700"
+                                value={selectedLocation}
+                                onChange={(e) => {
+                                    setSelectedLocation(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                {availableLocations.map((location) => (
+                                    <option key={location} value={location}>{location}</option>
+                                ))}
                             </select>
                         </div>
 
@@ -202,13 +230,13 @@ const Event = () => {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-gray-600">Loading Events...</p>
+                            <p className="text-gray-600">No events found for the selected filters.</p>
                         )}
                     </div>
                 </section>
 
                 {/* Pagination - only show if there are events and multiple pages */}
-                {events.length > 0 && totalPages > 1 && (
+                {filteredEvents.length > 0 && totalPages > 1 && (
                     <PaginationDesign 
                         currentPage={currentPage}
                         totalPages={totalPages}

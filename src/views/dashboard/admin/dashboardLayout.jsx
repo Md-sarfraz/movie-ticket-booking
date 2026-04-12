@@ -13,6 +13,9 @@ import AddTheaterPage from './addTheaterPage'
 import ManageBookings from './manageBookings'
 import Reports from './reports'
 import AdminProfile from './adminProfile'
+import EventList from './eventList'
+import AddEventPage from './addEventPage'
+import EditEventPage from './editEventPage'
 
 
 const DashboardLayout = () => {
@@ -26,6 +29,9 @@ const DashboardLayout = () => {
                     <Route path='/' element={<Dashboard/>}/>
                     <Route path='/dashboard' element={<Dashboard/>}/>
                     <Route path='/movieList' element={<MovieList/>}/>
+                    <Route path='/eventList' element={<EventList/>}/>
+                    <Route path='/addEvent' element={<AddEventPage/>}/>
+                    <Route path='/editEvent/:eventId' element={<EditEventPage/>}/>
                     <Route path='/addMovie' element={<AddMoviePage/>}/>
                     <Route path='/editMovie/:movieId' element={<EditMoviePage/>}/>
                     <Route path='/userList' element={<UserList/>}/>

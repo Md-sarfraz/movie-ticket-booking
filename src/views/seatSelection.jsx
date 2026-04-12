@@ -161,6 +161,7 @@ const SeatSelection = () => {
 
             // ── STEP 4: Signature valid → booking confirmed in DB → navigate ──
             const confirmed = verifyRes.data?.data || verifyRes.data;
+            const localUser = JSON.parse(localStorage.getItem('user') || '{}');
             navigate('/ticketPage', {
               state: {
                 movie,
@@ -176,6 +177,9 @@ const SeatSelection = () => {
                 discount:        confirmed.discount || 0,
                 bookingId:       confirmed.bookingReference,
                 paymentId:       confirmed.razorpayPaymentId,
+                customerName:    localUser?.name || localUser?.fullName || '',
+                paymentStatus:   'PAID',
+                showPostPaymentFlow: true,
               }
             });
           } catch (verifyErr) {

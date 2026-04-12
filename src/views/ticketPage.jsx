@@ -1,13 +1,70 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Check, Download, Home, Calendar, Clock, MapPin, Ticket } from "lucide-react";
+import { Check, Download, Home, Calendar, Clock, MapPin, Ticket, User, BadgeCheck } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import TicketDownload, { TICKET_W, TICKET_H } from "../components/TicketDownload";
+import { getEventTicketByBookingReference } from "@/services/event-booking-service";
+import PostPaymentProgress from "@/components/PostPaymentProgress";
 
 export default function TicketConfirmationPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const ticketRef = useRef(null);
+  const [remoteEventTicket, setRemoteEventTicket] = useState(null);
+  const [ticketReady, setTicketReady] = useState(!location.state?.showPostPaymentFlow);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const bookingReference = params.get("eventBookingRef");
+
+    if (!bookingReference || location.state?.movie) {
+      return;
+    }
+
+    const loadEventTicket = async () => {
+      try {
+        const data = await getEventTicketByBookingReference(bookingReference);
+        setRemoteEventTicket(data);
+      } catch (error) {
+        console.error("Failed to fetch event ticket", error);
+      }
+    };
+
+    loadEventTicket();
+  }, [location.search, location.state]);
+
+  const localState = location.state || {};
+  const mappedRemoteState = remoteEventTicket
+    ? {
+        bookingId: remoteEventTicket.bookingReference,
+        ticketId: remoteEventTicket.ticketId,
+        qrCode: remoteEventTicket.qrCode,
+        totalPrice: remoteEventTicket.totalAmount,
+        customerName: remoteEventTicket.customerName,
+        paymentStatus: remoteEventTicket.paymentStatus,
+        ticketCount: remoteEventTicket.ticketCount,
+        date: remoteEventTicket.eventDate,
+        time: remoteEventTicket.eventTime,
+        movie: {
+          title: remoteEventTicket.eventName,
+          language: "Event",
+        },
+        show: {
+          category: "Event",
+          format: "Live",
+        },
+        theater: {
+          name: remoteEventTicket.eventLocation,
+          location: remoteEventTicket.eventLocation,
+        },
+        seatLabels: [],
+      }
+    : {};
+
+  const viewState = {
+    ...mappedRemoteState,
+    ...localState,
+  };
 
   const {
     movie,
@@ -17,14 +74,31 @@ export default function TicketConfirmationPage() {
     date,
     seats = [],
     seatLabels = [],
+    ticketCount = 0,
+    customerName = "",
+    paymentStatus = "PAID",
     totalPrice = 0,
     convenienceFee = 0,
     discount = 0,
     bookingId = "BTS" + Date.now().toString().slice(-8),
     paymentId = "PAY" + Date.now().toString().slice(-8),
-  } = location.state || {};
+    ticketId = "EVTKT" + Date.now().toString().slice(-8),
+    qrCode,
+  } = viewState;
+
+  const userName = (() => {
+    if (customerName) return customerName;
+    try {
+      const localUser = JSON.parse(localStorage.getItem("user") || "{}");
+      return localUser?.name || localUser?.fullName || "Guest";
+    } catch {
+      return "Guest";
+    }
+  })();
 
   const allSeats = seatLabels.length > 0 ? seatLabels : seats;
+  const seatsCount = allSeats.length > 0 ? allSeats.length : ticketCount;
+  const seatInfoText = allSeats.length > 0 ? allSeats.join(", ") : "General Admission";
   const theaterCity =
     typeof theater?.city === "object" ? theater?.city?.name : theater?.city;
 
@@ -48,7 +122,7 @@ export default function TicketConfirmationPage() {
     hour12: true,
   });
 
-  const qrValue = JSON.stringify({
+  const qrValue = qrCode || JSON.stringify({
     bookingId,
     movie: movie?.title,
     theater: theater?.name,
@@ -58,6 +132,8 @@ export default function TicketConfirmationPage() {
     amount: totalPrice,
   });
 
+  const bannerImage = movie?.bannerUrl || movie?.backgroundImageUrl || movie?.imageUrl || movie?.postUrl;
+
   const handleDownload = async () => {
     if (!ticketRef.current) return;
     try {
@@ -65,11 +141,11 @@ export default function TicketConfirmationPage() {
       const { jsPDF } = await import("jspdf");
 
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         logging: false,
-        backgroundColor: "#0f172a",
+        backgroundColor: "#ffffff",
       });
 
       const imgW = TICKET_W;
@@ -104,6 +180,16 @@ export default function TicketConfirmationPage() {
     );
   }
 
+  if (!ticketReady) {
+    return (
+      <PostPaymentProgress
+        eventName={movie?.title}
+        onComplete={() => setTicketReady(true)}
+        durationMs={2200}
+      />
+    );
+  }
+
   return (
     <>
       <TicketDownload
@@ -114,144 +200,138 @@ export default function TicketConfirmationPage() {
         time={time}
         date={date}
         allSeats={allSeats}
+        ticketCount={ticketCount}
         totalPrice={totalPrice}
         bookingId={bookingId}
         theaterCity={theaterCity}
       />
-
-
-
-      {/* === Screen view === */}
-      <div className="min-h-screen bg-gray-50 py-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* Success Banner */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center">
-            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-3 shrink-0">
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-orange-50 py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-4 md:p-5 flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
               <Check className="w-6 h-6 text-white" strokeWidth={3} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Thank you for your purchase!</h2>
-              <p className="text-sm text-gray-600 mt-0.5">Your booking has been confirmed</p>
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">Booking Confirmed ✅</h2>
+              <p className="text-sm text-slate-600">Your ticket is ready to use at entry.</p>
             </div>
           </div>
 
-          {/* Main Ticket Card */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="grid md:grid-cols-3 gap-6 p-6">
+          <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+            {bannerImage && (
+              <div className="relative h-40 md:h-56 overflow-hidden">
+                <img src={bannerImage} alt={movie?.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/80">E-Ticket</p>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">{movie?.title}</h1>
+                </div>
+              </div>
+            )}
 
-              {/* Left � Movie Details */}
-              <div className="md:col-span-2 space-y-4">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{movie?.title}</h1>
-                  <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
-                    {show?.category && <span className="px-2 py-1 bg-gray-100 rounded">{show.category}</span>}
-                    {movie?.language && <><span>|</span><span>{movie.language}</span></>}
-                    {show?.format && <><span>|</span><span>{show.format}</span></>}
+            <div className="grid md:grid-cols-[1.3fr_0.9fr]">
+              <div className="p-5 md:p-7 space-y-5">
+                {!bannerImage && (
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-amber-700">E-Ticket</p>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">{movie?.title}</h1>
+                  </div>
+                )}
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">User Name</p>
+                    <p className="text-base font-semibold text-slate-900 mt-1 flex items-center gap-2">
+                      <User size={16} className="text-slate-500" />
+                      {userName}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                    <p className="text-xs text-slate-500 uppercase tracking-wide">Payment Status</p>
+                    <p className="text-base font-semibold text-emerald-700 mt-1 flex items-center gap-2">
+                      <BadgeCheck size={16} />
+                      {String(paymentStatus || "PAID").toUpperCase()}
+                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-start">
-                    <MapPin className="w-5 h-5 text-gray-400 mr-3 mt-0.5 shrink-0" />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-3">
+                    <Calendar className="w-5 h-5 text-slate-500 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-gray-900">{theater?.name}</p>
-                      <p className="text-sm text-gray-500">{theater?.location || theaterCity}</p>
+                      <p className="text-xs uppercase text-slate-500">Date</p>
+                      <p className="text-sm font-medium text-slate-900">{formatDate(date) || "TBD"}</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center">
-                    <span className="text-xs font-medium text-gray-500 w-20">SCREEN</span>
-                    <span className="text-sm font-semibold text-gray-900">{show?.screenNumber || "N/A"}</span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                    <span className="text-sm text-gray-700">{formatDate(date)}</span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 text-gray-400 mr-3" />
-                    <span className="text-sm text-gray-700">{time}</span>
-                  </div>
-
-                  <div className="flex items-start">
-                    <Ticket className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                  <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-3">
+                    <Clock className="w-5 h-5 text-slate-500 mt-0.5" />
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {allSeats.length} Ticket{allSeats.length !== 1 ? "s" : ""}
+                      <p className="text-xs uppercase text-slate-500">Time</p>
+                      <p className="text-sm font-medium text-slate-900">{time || "TBD"}</p>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-slate-200 p-3">
+                    <MapPin className="w-5 h-5 text-slate-500 mt-0.5" />
+                    <div>
+                      <p className="text-xs uppercase text-slate-500">Venue</p>
+                      <p className="text-sm font-semibold text-slate-900">{theater?.name}</p>
+                      <p className="text-sm text-slate-600">{theater?.location || theaterCity || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border-2 border-dashed border-slate-300 p-4">
+                  <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-slate-500 uppercase text-xs tracking-wide">Ticket ID</p>
+                      <p className="font-bold text-slate-900 break-all">{ticketId}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 uppercase text-xs tracking-wide">Booking ID</p>
+                      <p className="font-bold text-slate-900 break-all">{bookingId}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 uppercase text-xs tracking-wide">Tickets</p>
+                      <p className="font-semibold text-slate-900">
+                        {seatsCount} Ticket{seatsCount !== 1 ? "s" : ""}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">{allSeats.join(", ") || "Seats"}</p>
+                      <p className="text-slate-600 mt-1">{seatInfoText}</p>
                     </div>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-dashed border-gray-300 my-4" />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Booking ID</p>
-                    <p className="font-bold text-gray-900">{bookingId}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Amount Paid</p>
-                    <p className="font-bold text-lg text-gray-900">&#8377;{Number(totalPrice || 0).toFixed(2)}</p>
-                  </div>
-                </div>
-
-                <div className="pt-2 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">BOOKING DATE & TIME</span>
-                    <span className="text-gray-700 font-medium">{currentDateTime}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">CONFIRMATION NO.</span>
-                    <span className="text-gray-700 font-medium">{paymentId?.slice(-6) || bookingId?.slice(-6)}</span>
+                    <div>
+                      <p className="text-slate-500 uppercase text-xs tracking-wide">Amount Paid</p>
+                      <p className="font-bold text-xl text-slate-900">₹{Number(totalPrice || 0).toFixed(2)}</p>
+                      <p className="text-xs text-slate-500 mt-1">Booked on {currentDateTime}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right � QR Code */}
-              <div className="md:col-span-1 flex flex-col items-center justify-start md:border-l-2 md:border-dashed md:border-gray-300 md:pl-6">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">YOUR TICKET QR CODE</p>
-                <div className="bg-white p-3 border-2 border-gray-200 rounded-lg inline-block">
-                  <QRCodeSVG value={qrValue} size={160} level="H" includeMargin={false} />
+              <div className="border-t md:border-t-0 md:border-l border-dashed border-slate-300 p-5 md:p-7 bg-gradient-to-b from-white to-slate-50 flex flex-col items-center justify-center">
+                <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-3">Scan At Entry</p>
+                <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm">
+                  <QRCodeSVG value={qrValue} size={180} level="H" includeMargin={false} />
                 </div>
-                <p className="text-xs text-gray-500 mt-3 px-4 text-center">Show this QR code at cinema entry</p>
-                <p className="font-bold text-lg text-gray-900 mt-4">{bookingId}</p>
+                <p className="text-xs text-slate-500 mt-4 text-center">Present this QR code at the event gate for quick verification.</p>
+                <p className="mt-3 text-sm font-semibold text-slate-900">Ref: {paymentId?.slice(-8) || bookingId?.slice(-8)}</p>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex flex-col sm:flex-row gap-3">
+            <div className="border-t border-slate-200 bg-slate-50 px-5 md:px-7 py-4 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleDownload}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
               >
                 <Download className="w-4 h-4" />
-                DOWNLOAD TICKET
+                Download Ticket
               </button>
               <button
                 onClick={() => navigate("/")}
-                className="flex-1 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                className="flex-1 border border-slate-300 hover:bg-white text-slate-700 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
               >
                 <Home className="w-4 h-4" />
-                BACK TO HOME
+                Back To Home
               </button>
             </div>
-          </div>
-
-          {/* Promo Banner */}
-          <div className="mt-6 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-4 text-white flex flex-col sm:flex-row items-center justify-between shadow-md gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0">
-                <span className="text-2xl"></span>
-              </div>
-              <p className="font-bold text-sm">Get 2 Free Movie tickets every month with TicketFlix RBL Bank Fun+ Credit Card</p>
-            </div>
-            <button className="bg-white text-red-600 font-bold py-2 px-6 rounded-lg hover:bg-gray-100 transition-colors whitespace-nowrap">
-              INSTANT APPROVAL
-            </button>
           </div>
         </div>
       </div>

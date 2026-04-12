@@ -30,6 +30,7 @@ import PaymentPage from './views/paymentPage';
 import TicketPage from './views/ticketPage';
 import UserList from './views/dashboard/admin/userList';
 import { clearAuthStorage, getStoredAuth } from './auth/storage';
+import EventBookingPage from './views/eventBookingPage';
 
 function App() {
   //app.jsx
@@ -69,6 +70,7 @@ function App() {
   const hideFooterRoutes = [
     '/paymentPage',
     '/payment',
+    '/event-booking',
     '/ticketPage',
     '/seatSelection',
     '/loginPage',
@@ -102,6 +104,8 @@ function App() {
           <Route path='/signUpPage' element={<PageTransition><SignUpPage /></PageTransition>} />
           <Route path='/movieDetails' element={<PageTransition><ProtectedRoute><MovieDetails /></ProtectedRoute></PageTransition>} />
           <Route path='/eventDetails' element={<PageTransition><ProtectedRoute><EventDetails /></ProtectedRoute></PageTransition>} />
+          <Route path='/eventDetails/:eventId' element={<PageTransition><ProtectedRoute><EventDetails /></ProtectedRoute></PageTransition>} />
+          <Route path='/event-booking' element={<PageTransition><ProtectedRoute><EventBookingPage /></ProtectedRoute></PageTransition>} />
           <Route path='/bookTickets' element={<PageTransition><ProtectedRoute><BookTickets /></ProtectedRoute></PageTransition>} />
           <Route path='/seatSelection' element={<PageTransition><ProtectedRoute><SeatSelection /></ProtectedRoute></PageTransition>} />
           <Route path='/payment' element={<PageTransition><ProtectedRoute><PaymentPage /></ProtectedRoute></PageTransition>} />

@@ -77,7 +77,9 @@ const PaymentPage = () => {
           convenienceFee,
           discount,
           bookingId,
-          paymentId: `PAY${Date.now().toString().slice(-8)}`
+          paymentId: `PAY${Date.now().toString().slice(-8)}`,
+          paymentStatus: 'PAID',
+          showPostPaymentFlow: true,
         }
       });
     }, 2000);

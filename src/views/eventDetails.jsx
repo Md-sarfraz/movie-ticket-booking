@@ -1,22 +1,108 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, IndianRupee, Heart, Share2, User } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { getEventById } from "@/services/event-service";
+import { getStoredAuth } from "@/auth/storage";
+import { useDispatch } from "react-redux";
+import { setEventBookingLock } from "@/store/slices/eventBookingSlice";
 
 const EventDetails = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
-  const event = location.state?.data
-  // const event = location.state?.event || location.state?.data || {
-  //   title: "Comedy Night with Gaurav Kapoor",
-  //   category: "Comedy",
-  //   date: "Apr 15, 2025",
-  //   time: "8:00 PM",
-  //   location: "The Comedy Club, Delhi",
-  //   price: "₹499 onwards",
-  //   backgroundImageUrl: "/api/placeholder/1200/600",
-  //   imageUrl: "/api/placeholder/200/200",
-  //   description: "Come and enjoy the super relatable and super funny, Gaurav Kapoor in his live show. One of the funniest and most prolific stand-up acts in the country..."
-  // };
+  const { eventId } = useParams();
+  const [event, setEvent] = useState(location.state?.data || null);
+  const [loading, setLoading] = useState(!location.state?.data && !!eventId);
+  const [ticketCount, setTicketCount] = useState(1);
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  useEffect(() => {
+    const loadEvent = async () => {
+      if (event || !eventId) {
+        return;
+      }
+
+      try {
+        const data = await getEventById(eventId);
+        setEvent(data);
+      } catch (error) {
+        console.error("Failed to fetch event details", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEvent();
+  }, [event, eventId, navigate]);
+
+  const extractUnitPrice = (priceText) => {
+    if (!priceText) {
+      return 0;
+    }
+
+    const cleaned = priceText.toString().replace(/,/g, "");
+    const match = cleaned.match(/\d+(\.\d+)?/);
+    return match ? Number(match[0]) : 0;
+  };
+
+  const handleBookNow = async () => {
+    const { user } = getStoredAuth();
+    if (!user?.id) {
+      navigate("/loginPage");
+      return;
+    }
+
+    setBookingLoading(true);
+    try {
+      const unitPrice = extractUnitPrice(event.price);
+      const totalAmount = unitPrice * ticketCount;
+
+      dispatch(
+        setEventBookingLock({
+          event,
+          bookingId: null,
+          bookingReference: null,
+          userId: user.id,
+          ticketCount,
+          unitPrice,
+          totalAmount,
+          expiresAt: null,
+        })
+      );
+
+      navigate("/event-booking", {
+        state: {
+          event,
+          bookingId: null,
+          bookingReference: null,
+          userId: user.id,
+          ticketCount,
+          unitPrice,
+          totalAmount,
+          expiresAt: null,
+        },
+      });
+    } catch (error) {
+      console.error("Failed during event booking flow", error);
+      alert(error?.response?.data?.message || "Unable to continue booking");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="max-w-7xl mx-auto p-6 pt-24">Loading event details...</div>;
+  }
+
+  if (!event) {
+    return (
+      <div className="max-w-7xl mx-auto p-6 pt-24">
+        <p className="text-gray-700 mb-4">Event not found.</p>
+        <Button onClick={() => navigate('/event')}>Back to Events</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 grid lg:grid-cols-3 gap-8 pt-20 pb-20">
@@ -131,10 +217,27 @@ const EventDetails = () => {
               *Including all taxes and fees
             </p>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Tickets</label>
+            <select
+              value={ticketCount}
+              onChange={(e) => setTicketCount(Number(e.target.value))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+            >
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((count) => (
+                <option key={count} value={count}>{count} Ticket{count > 1 ? "s" : ""}</option>
+              ))}
+            </select>
+          </div>
           
-          {/* Book Now Button */}
-          <Button className="w-full py-6 text-lg font-semibold bg-pink-600 hover:bg-pink-700">
-            Book Now
+          {/* Continue Button */}
+          <Button
+            onClick={handleBookNow}
+            disabled={bookingLoading}
+            className="w-full py-6 text-lg font-semibold bg-pink-600 hover:bg-pink-700"
+          >
+            {bookingLoading ? "Checking..." : "Continue"}
           </Button>
           
           <p className="text-xs text-gray-500 text-center">
