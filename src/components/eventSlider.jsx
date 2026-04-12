@@ -32,11 +32,11 @@ const EventSlider = ({ items = [] }) => {
   return (
     <div className="relative w-full max-w-5xl mx-auto">
       {/* Cards Container */}
-      <div className="flex justify-center gap-4 py-2">
+      <div className="flex sm:justify-center gap-3 sm:gap-4 py-2 overflow-x-auto sm:overflow-hidden snap-x snap-mandatory">
         {visibleItems.map((item, index) => (
           <div 
             key={item.id || `${activeIndex}-${index}`} 
-            className="w-64 bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            className="min-w-[82%] sm:min-w-0 sm:w-64 bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg sm:hover:-translate-y-1 snap-start"
           >
             {/* Card Image */}
             <div className="relative h-32 overflow-hidden">
@@ -98,7 +98,7 @@ const EventSlider = ({ items = [] }) => {
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex justify-between absolute top-1/2 -translate-y-1/2 w-full px-0">
+      <div className="hidden sm:flex justify-between absolute top-1/2 -translate-y-1/2 w-full px-0">
         <button 
           onClick={prevSlide}
           className="bg-white/90 shadow-md rounded-full p-1.5 hover:bg-white transition-colors -ml-3"
@@ -117,7 +117,7 @@ const EventSlider = ({ items = [] }) => {
       </div>
 
       {/* Pagination Dots */}
-      <div className="flex justify-center mt-4 gap-1">
+      <div className="hidden sm:flex justify-center mt-4 gap-1">
         {[...Array(Math.min(5, safeItems.length))].map((_, index) => {
           const isActive = index === activeIndex % Math.min(5, safeItems.length);
           return (

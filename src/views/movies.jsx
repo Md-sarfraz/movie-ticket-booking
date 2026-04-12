@@ -95,13 +95,13 @@ const Movies = () => {
     };
 
     return (
-        <div className='bg-[#f5f5f5]'>
-            <Banner heading="Movies" paragraph="Find & Book Your Favorite Movies – Anytime, Anywhere!" />
-            <div className='flex flex-row'>
+        <div className='bg-[#f5f5f5] min-h-screen'>
+            <Banner heading="Movies" paragraph="Find & Book Your Favorite Movies – Anytime, Anywhere!" compactMobile />
+            <div className='max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-10 lg:pb-14 flex flex-col lg:flex-row gap-6 lg:gap-8'>
                 {/* Sidebar Filters */}
-                <div className='w-[23%] flex flex-col pt-14'>
-                    <h1 className='text-xl font-bold pl-4'>Filter By</h1>
-                    <div className='flex flex-col gap-3 justify-center items-center pt-4'>
+                <div className='w-full lg:w-[24%] flex flex-col pt-6 lg:pt-14'>
+                    <h1 className='text-lg sm:text-xl font-bold px-1 lg:pl-2'>Filter By</h1>
+                    <div className='flex flex-col gap-3 pt-4'>
                         <FilterBox
                             title="Languages"
                             options={["All", "Telugu", "English", "Hindi", "Malayalam", "Tamil", "Bengali", "Korean", "Persian"]}
@@ -124,21 +124,25 @@ const Movies = () => {
                 </div>
 
                 {/* Movies List */}
-                <div className='w-[77%] pt-14'>
-                    <h1 className='text-xl font-bold pl-4 pb-4'>Movies In <span className='text-red-500'>{selectedCity?.name || 'Your City'}</span></h1>
-                    <div className='flex flex-col  items-center'>
+                <div className='w-full lg:w-[76%] pt-1 lg:pt-14'>
+                    <h1 className='text-xl sm:text-2xl font-bold pb-4'>Movies In <span className='text-red-500'>{selectedCity?.name || 'Your City'}</span></h1>
+                    <div className='hidden sm:flex flex-col items-center'>
 
-                        <img src="./images/coming-soon-banner.avif" className='w-[97%] h-[70px] ' alt="" />
+                        <img
+                            src="./images/coming-soon-banner.avif"
+                            className='w-full rounded-xl h-14 sm:h-16 md:h-20 object-cover'
+                            alt="Coming soon banner"
+                        />
                     </div>
 
-                    <div className="flex flex-wrap justify-center items-center ml-3 gap-4 mt-14 pb-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 mt-8 sm:mt-10 pb-6">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4 col-span-full">
                                 <div className="w-14 h-14 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
                                 <p className="text-gray-500 font-medium">Loading movies...</p>
                             </div>
                         ) : error ? (
-                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4 col-span-full">
                                 <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
                                     <span className="text-3xl">⚠️</span>
                                 </div>
@@ -152,16 +156,16 @@ const Movies = () => {
                             </div>
                         ) : currentMovies.length > 0 ? (
                             currentMovies.map((movie) => (
-                                <div key={movie.id} className="w-56 h-[350px] bg-white rounded-xl overflow-hidden shadow-lg pb-3">
+                                <div key={movie.id} className="w-full bg-white rounded-xl overflow-hidden shadow-lg border border-gray-100">
                                     {/* Movie Image */}
-                                    <div className="relative w-full flex justify-center items-center pt-2">
-                                        <div className="relative w-52 h-52 group">
+                                    <div className="relative w-full p-2">
+                                        <div className="relative w-full h-52 sm:h-56 group">
                                             <img
                                                 src={movie.postUrl}
                                                 alt={movie.title}
                                                 className="w-full h-full rounded-lg object-cover"
                                             />
-                                            <div className="absolute rounded-lg inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
+                                            <div className="absolute rounded-lg inset-0 bg-black/55 hidden sm:flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out">
                                                 <button className="mb-2 px-4 py-3 text-[10px] bg-[#d9871c] hover:bg-transparent hover:border hover:border-[#d9871c] text-white rounded-md 
                                                     transform -translate-x-5 group-hover:translate-x-0 transition-transform duration-500 ease-in-out"
                                                     onClick={() => setTrailerUrl(movie.trailer)}
@@ -174,56 +178,50 @@ const Movies = () => {
                                                 >
                                                     VIEW DETAILS
                                                 </button>
-
-                                                {trailerUrl && (
-                                                    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-                                                        <div className="relative w-full max-w-4xl h-96">
-                                                            <iframe
-                                                                src={trailerUrl}
-                                                                title={`${movie.title} Trailer`}
-                                                                className="w-full h-full"
-                                                                frameBorder="0"
-                                                                allow="autoplay; encrypted-media"
-                                                                allowFullScreen
-                                                            ></iframe>
-                                                            <button
-                                                                onClick={() => setTrailerUrl(null)}
-                                                                className="absolute top-2 right-2 text-white text-2xl cursor-pointer"
-                                                            >
-                                                                ✖
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Movie Details */}
-                                    <div className="bg-white px-4 py-3 relative">
-                                        <h2 className="text-lg font-semibold">{movie.title}</h2>
+                                    <div className="bg-white px-4 py-3 pb-4">
+                                        <h2 className="text-base sm:text-lg font-semibold line-clamp-1">{movie.title}</h2>
                                         <p className="text-sm text-gray-500">Genre: {movie.genre}</p>
 
-                                        {/* Rating Section */}
-                                        <div className="flex items-center mt-2 text-[#d9871c]">
-                                            {[...Array(5)].map((_, index) => {
-                                                if (movie.rating >= index + 1) {
-                                                    return <FaStar key={index} />;
-                                                } else if (movie.rating >= index + 0.5) {
-                                                    return <FaStarHalfAlt key={index} />;
-                                                } else {
-                                                    return <FaRegStar key={index} />;
-                                                }
-                                            })}
-                                        </div>
+                                        <div className="mt-3 flex items-center justify-between gap-3">
+                                            {/* Rating Section */}
+                                            <div className="flex items-center text-[#d9871c] shrink-0">
+                                                {[...Array(5)].map((_, index) => {
+                                                    if (movie.rating >= index + 1) {
+                                                        return <FaStar key={index} />;
+                                                    } else if (movie.rating >= index + 0.5) {
+                                                        return <FaStarHalfAlt key={index} />;
+                                                    } else {
+                                                        return <FaRegStar key={index} />;
+                                                    }
+                                                })}
+                                            </div>
 
-                                        {/* Shopping Cart Button */}
-                                        <div className="flex mt-3 absolute top-14 right-6">
-                                            <button className="p-3 border border-gray-200 rounded-lg text-[#d9871c] hover:bg-[#d9871c] hover:text-white transition"
+                                            <button
+                                                className="p-2.5 border border-gray-200 rounded-lg text-[#d9871c] hover:bg-[#d9871c] hover:text-white transition shrink-0"
                                                 onClick={() => handleClick(movie)}
+                                                aria-label={`Book ${movie.title}`}
                                             >
                                                 <FaShoppingCart />
+                                            </button>
+                                        </div>
+
+                                        <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+                                            <button
+                                                className="px-3 py-2 text-[11px] border border-[#d9871c] text-[#d9871c] rounded-md hover:bg-[#d9871c] hover:text-white transition"
+                                                onClick={() => setTrailerUrl(movie.trailer)}
+                                            >
+                                                VIEW TRAILER
+                                            </button>
+                                            <button
+                                                className="px-3 py-2 text-[11px] bg-[#d9871c] text-white rounded-md hover:opacity-90 transition"
+                                                onClick={() => handleClick(movie)}
+                                            >
+                                                VIEW DETAILS
                                             </button>
                                         </div>
                                     </div>
@@ -233,7 +231,7 @@ const Movies = () => {
                                 
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4">
+                                                            <div className="flex flex-col items-center justify-center py-24 w-full gap-4 col-span-full">
                                 <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
                                     <span className="text-3xl">🎬</span>
                                 </div>
@@ -242,6 +240,28 @@ const Movies = () => {
                             </div>
                         )}
                     </div>
+
+                    {trailerUrl && (
+                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-3 sm:p-6">
+                            <div className="relative w-full max-w-4xl h-[220px] sm:h-[320px] md:h-[420px]">
+                                <iframe
+                                    src={trailerUrl}
+                                    title="Movie Trailer"
+                                    className="w-full h-full rounded-lg"
+                                    frameBorder="0"
+                                    allow="autoplay; encrypted-media"
+                                    allowFullScreen
+                                ></iframe>
+                                <button
+                                    onClick={() => setTrailerUrl(null)}
+                                    className="absolute -top-3 -right-1 sm:top-2 sm:right-2 text-white text-2xl cursor-pointer bg-black/50 w-8 h-8 rounded-full flex items-center justify-center"
+                                    aria-label="Close trailer"
+                                >
+                                    ✖
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Pagination - only show if there are movies and multiple pages */}
                     {movies.length > 0 && totalPages > 1 && (

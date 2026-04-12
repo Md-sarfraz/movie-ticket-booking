@@ -54,59 +54,59 @@ useEffect(() => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-12">
       <div
-  className="relative w-full h-[90vh] flex flex-col md:flex-row items-center text-white rounded-lg mx-auto pt-20 bg-cover bg-center"
-  style={{
-    backgroundImage: `url(${movie.postUrl})`, // ✅ dynamic background
-  }}
->
+        className="relative w-full min-h-[72vh] md:min-h-[78vh] flex flex-col md:flex-row md:items-center text-white rounded-xl mx-auto mt-20 overflow-hidden bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${movie.backgroundImageUrl || movie.postUrl})`,
+        }}
+      >
 
-        <div className='bg-black w-full h-[90vh] opacity-60 absolute bottom-0'></div>
+        <div className='bg-black/70 w-full h-full absolute inset-0'></div>
 
         {/* Poster */}
-        <div className="relative w-64 h-80 z-10 ml-12">
+        <div className="relative w-44 sm:w-56 md:w-64 h-64 sm:h-80 z-10 mx-auto md:mx-0 md:ml-10 lg:ml-12 mt-6 md:mt-0 shrink-0">
           <img
-            src={movie.postUrl}   // ✅ FIXED FIELD
-            alt={`${movie.title} Poster`}  // ✅ FIXED FIELD
+            src={movie.postUrl}
+            alt={`${movie.title} Poster`}
             className="w-full h-full object-cover rounded-lg shadow-lg"
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <FaPlay className="text-white text-6xl bg-black bg-opacity-50 p-4 rounded-full" />
+            <FaPlay className="text-white text-4xl sm:text-5xl md:text-6xl bg-black bg-opacity-50 p-3 sm:p-4 rounded-full" />
           </div>
         </div>
 
         {/* Details */}
-        <div className="md:ml-8 mt-4 md:mt-0 flex flex-col justify-between z-10">
-          <h2 className="text-3xl font-bold mb-2">{movie.title}</h2> {/* ✅ FIXED */}
+        <div className="md:ml-8 lg:ml-10 mt-5 md:mt-0 flex flex-col justify-between z-10 px-4 sm:px-6 md:px-0 pb-6 md:pb-0 w-full max-w-2xl">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight">{movie.title}</h2>
           
-          <div className="flex space-x-2 mb-4">
-            <span className="bg-purple-600 px-2 py-1 rounded-full text-xs font-semibold">
+          <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+            <span className="bg-purple-600 px-2.5 py-1 rounded-full text-xs font-semibold break-words">
               {movie.genre}
             </span>
           </div>
 
-          <p className="text-gray-400 text-sm mb-2">
+          <p className="text-gray-300 text-xs sm:text-sm mb-2">
             {movie.language} • {movie.releaseDate || "Coming Soon"} • {movie.duration || "2h 30m"}
           </p>
 
-          <p className="text-gray-300 mb-4">
+          <p className="text-gray-200 text-sm sm:text-base mb-4 leading-relaxed">
             {movie.description || "No description available for this movie."}
           </p>
 
           <div className="flex items-center mb-4">
-            <span className="text-gray-400 text-lg">Rating:</span>
-            <span className="text-yellow-400 text-xl ml-2">{movie.rating}</span>
+            <span className="text-gray-300 text-base sm:text-lg">Rating:</span>
+            <span className="text-yellow-400 text-lg sm:text-xl ml-2">{movie.rating}</span>
           </div>
 
-          <div className="flex space-x-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded w-full sm:w-auto">
               Watch Trailer
             </button>
 
             <button
               onClick={handleBookTickets}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded"
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-6 rounded w-full sm:w-auto"
             >
               Book Tickets
             </button>
@@ -115,21 +115,21 @@ useEffect(() => {
       </div>
 
       {/* About / Cast / Crew */}
-      <div className='w-[85%] pt-8 px-10 py-10'>
+      <div className='w-full pt-8 px-1 sm:px-2 md:px-4 lg:px-6 py-8 sm:py-10'>
         <div className='border-b-[1px] pb-8'>
-          <h1 className='text-3xl font-bold'>About the movie</h1>
-          <p className='pt-3'>
+          <h1 className='text-2xl sm:text-3xl font-bold'>About the movie</h1>
+          <p className='pt-3 text-sm sm:text-base leading-relaxed'>
             {movie.description || "No additional details available."}
           </p>
         </div>
 
         <div className='border-b-[1px] pt-6 pb-4'>
-          <h1 className='text-2xl font-bold mb-4'>Cast</h1>
+          <h1 className='text-xl sm:text-2xl font-bold mb-4'>Cast</h1>
           <AboutMovieSlider people={movie.castMember} type="cast" />
         </div>
 
         <div className='pt-5 pb-4'>
-          <h1 className='text-2xl font-bold mb-4'>Crew</h1>
+          <h1 className='text-xl sm:text-2xl font-bold mb-4'>Crew</h1>
           <AboutMovieSlider people={movie.crewMember} type="crew" />
         </div>
       </div>

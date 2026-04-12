@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { createPortal } from 'react-dom';
 import { isLoggedIn } from '../auth';
 import { FiSearch } from "react-icons/fi";
 import axios from 'axios';
@@ -80,6 +81,13 @@ const Navbar = ({ onSearch }) => {
     }
   }, [isShowMenu]);
 
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const handleShowMenu = () => {
     setIsShowMenu(!isShowMenu);
     if (isShowMenu) {
@@ -137,8 +145,22 @@ const Navbar = ({ onSearch }) => {
   const isAdmin = userRole === 'ADMIN';
   const logoRedirectPath = isAdmin ? '/adminDashboard' : '/';
 
+  const desktopNavClass = ({ isActive }) =>
+    `px-3 py-2 rounded-xl transition-all duration-200 ${
+      isActive
+        ? 'text-red-600 bg-red-50 font-semibold'
+        : 'text-gray-700 hover:text-red-500 hover:bg-red-50'
+    }`;
+
+  const mobileNavClass = ({ isActive }) =>
+    `py-3 px-4 text-base font-medium rounded-xl border transition-all ${
+      isActive
+        ? 'bg-red-50 text-red-600 border-red-100'
+        : 'border-transparent text-gray-700 hover:border-red-100 hover:text-red-500 hover:bg-red-50'
+    }`;
+
   return (
-    <div className='flex h-16 md:h-20 items-center justify-between border-b-2 border-gray-100 shadow-lg fixed w-full bg-white/95 backdrop-blur-md z-[100] px-4 md:px-8'>
+    <div className='flex h-16 md:h-20 items-center justify-between border-b border-gray-200/80 shadow-[0_6px_24px_rgba(15,23,42,0.08)] fixed top-0 left-0 w-full bg-white/90 backdrop-blur-xl z-[1000] px-4 md:px-8'>
       {/* Left section - Logo */}
       <div className='flex items-center gap-3 md:gap-6'>
         <Link to={logoRedirectPath} aria-label={isAdmin ? 'Go to admin dashboard' : 'Go to home page'}>
@@ -148,7 +170,7 @@ const Navbar = ({ onSearch }) => {
         {!isAdmin && (
           <div className='relative flex items-center'>
             <button 
-              className='flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 group' 
+              className='flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 group shadow-sm' 
               onClick={() => handleShowMenu()}
             >
               <i className="fa-solid fa-location-dot text-base md:text-lg text-red-500 group-hover:scale-110 transition-transform"></i>
@@ -265,26 +287,21 @@ const Navbar = ({ onSearch }) => {
       </div>
 
       {/* Desktop Navigation */}
-      {!isAdmin && <ul className='hidden lg:flex gap-8 justify-center text-sm font-medium'>
-        <li className='group flex justify-center flex-col items-center relative'>
-          <Link to='/' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>Home</Link>
-          <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
+      {!isAdmin && <ul className='hidden lg:flex gap-2 justify-center text-sm font-medium bg-white/70 border border-gray-200 rounded-2xl px-2 py-1 shadow-sm'>
+        <li>
+          <NavLink to='/' className={desktopNavClass}>Home</NavLink>
         </li>
-        <li className='group flex justify-center flex-col items-center relative'>
-          <Link to='/movies' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>Movies</Link>
-          <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
+        <li>
+          <NavLink to='/movies' className={desktopNavClass}>Movies</NavLink>
         </li>
-        <li className='group flex justify-center flex-col items-center relative'>
-          <Link to='/event' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>Events</Link>
-          <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
+        <li>
+          <NavLink to='/event' className={desktopNavClass}>Events</NavLink>
         </li>
-        <li className='group flex justify-center flex-col items-center relative'>
-          <Link to='/contact' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>Contact</Link>
-          <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
+        <li>
+          <NavLink to='/contact' className={desktopNavClass}>Contact</NavLink>
         </li>
-        <li className='group flex justify-center flex-col items-center relative'>
-          <Link to='/about' className='px-3 py-2 rounded-md hover:text-red-500 transition-colors'>About</Link>
-          <div className='absolute bottom-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 group-hover:w-full transition-all duration-300'></div>
+        <li>
+          <NavLink to='/about' className={desktopNavClass}>About</NavLink>
         </li>
       </ul>}
 
@@ -395,53 +412,69 @@ const Navbar = ({ onSearch }) => {
         </li>}
       </ul>
 
-      {/* Mobile Menu Overlay */}
-      {!isAdmin && isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 md:top-20 bg-white z-50 shadow-2xl">
-          <div className="flex flex-col p-6 space-y-2">
-            {/* Mobile Search */}
-            <div className="sm:hidden mb-4">
-              <SearchBar/>
+      {/* Mobile Menu Overlay (Portal to avoid stacking-context issues) */}
+      {!isAdmin && isMobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          <div
+            className="lg:hidden fixed inset-0 bg-black/45 backdrop-blur-[1px] z-[1001]"
+            onClick={closeMobileMenu}
+          />
+          <div className="lg:hidden fixed top-0 right-0 bottom-0 w-[88%] max-w-sm bg-gradient-to-b from-white to-slate-50 z-[1002] shadow-2xl border-l border-gray-200 overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-4 pt-20 md:pt-24 border-b border-gray-100 bg-white/90 backdrop-blur-sm sticky top-0">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-700">Menu</h3>
+              <button
+                onClick={closeMobileMenu}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center"
+                aria-label="Close menu"
+              >
+                <X size={16} />
+              </button>
             </div>
-            
-            {/* Mobile Navigation Links */}
-            <Link 
-              to='/' 
-              className='py-3 px-4 text-base font-medium rounded-lg border-b border-gray-100 hover:text-red-500 hover:bg-red-50 transition-all'
-              onClick={closeMobileMenu}
-            >
-              Home
-            </Link>
-            <Link 
-              to='/movies' 
-              className='py-3 px-4 text-base font-medium rounded-lg border-b border-gray-100 hover:text-red-500 hover:bg-red-50 transition-all'
-              onClick={closeMobileMenu}
-            >
-              Movies
-            </Link>
-            <Link 
-              to='/event' 
-              className='py-3 px-4 text-base font-medium rounded-lg border-b border-gray-100 hover:text-red-500 hover:bg-red-50 transition-all'
-              onClick={closeMobileMenu}
-            >
-              Events
-            </Link>
-            <Link 
-              to='/contact' 
-              className='py-3 px-4 text-base font-medium rounded-lg border-b border-gray-100 hover:text-red-500 hover:bg-red-50 transition-all'
-              onClick={closeMobileMenu}
-            >
-              Contact
-            </Link>
-            <Link 
-              to='/about' 
-              className='py-3 px-4 text-base font-medium rounded-lg border-b border-gray-100 hover:text-red-500 hover:bg-red-50 transition-all'
-              onClick={closeMobileMenu}
-            >
-              About
-            </Link>
+
+            <div className="flex flex-col p-4 space-y-2">
+              <div className="sm:hidden mb-2">
+                <SearchBar/>
+              </div>
+
+              <NavLink
+                to='/'
+                className={mobileNavClass}
+                onClick={closeMobileMenu}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to='/movies'
+                className={mobileNavClass}
+                onClick={closeMobileMenu}
+              >
+                Movies
+              </NavLink>
+              <NavLink
+                to='/event'
+                className={mobileNavClass}
+                onClick={closeMobileMenu}
+              >
+                Events
+              </NavLink>
+              <NavLink
+                to='/contact'
+                className={mobileNavClass}
+                onClick={closeMobileMenu}
+              >
+                Contact
+              </NavLink>
+              <NavLink
+                to='/about'
+                className={mobileNavClass}
+                onClick={closeMobileMenu}
+              >
+                About
+              </NavLink>
+            </div>
           </div>
-        </div>
+        </>,
+        document.body
       )}
 
       {/* Logout Confirmation Modal */}
