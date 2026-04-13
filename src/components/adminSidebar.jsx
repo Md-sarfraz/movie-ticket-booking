@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FaUsers, FaFilm, FaChartBar, FaCog, FaSignOutAlt, FaBuilding, FaTachometerAlt, FaTicketAlt, FaClock, FaUser, FaCalendarAlt } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ onNavigate }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeItem, setActiveItem] = useState("");
@@ -16,6 +16,9 @@ const AdminSidebar = () => {
   const handleNavigation = (path) => {
     setActiveItem(path);
     navigate(`/adminDashboard/${path}`);
+    if (onNavigate) {
+      onNavigate();
+    }
   };
   
   const confirmLogout = () => {
@@ -24,9 +27,9 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white flex flex-col h-[85vh]">
+    <div className="w-full bg-white flex flex-col h-full md:h-[85vh]">
       {/* Logo */}
-      <div className="flex items-center justify-center py-6 border-b">
+      <div className="flex items-center justify-center py-4 md:py-6 border-b">
         <div className="flex items-center">
           <FaTicketAlt size={24} className="mr-2 text-red-500" />
           <div className="bg-gradient-to-r from-blue-500 to-red-500 bg-clip-text text-transparent">
@@ -38,7 +41,7 @@ const AdminSidebar = () => {
       </div>
       
       {/* Navigation Links - Added max-height and overflow-y-auto for scrollability */}
-      <nav className="flex-grow py-6 px-4 max-h-96 overflow-y-auto">
+      <nav className="flex-grow py-4 md:py-6 px-3 md:px-4 overflow-y-auto">
         <ul className="space-y-2">
           <li>
             <button

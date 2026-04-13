@@ -127,7 +127,7 @@ const MovieCard = ({ movie, index, totalMovies, onUpdate, onRemove, onToggleColl
       {!movie.collapsed && (
         <div className="p-4 space-y-5">
           {/* Images */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ImageUploadBox
               label="Poster Image *"
               preview={movie.posterPreview}

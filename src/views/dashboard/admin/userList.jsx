@@ -212,12 +212,12 @@ export default function UserList() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-6">
+    <div className="w-full min-h-screen bg-gray-50 p-3 md:p-6">
       {/* Header Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
               User <span className="text-red-500">Management</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">
@@ -261,7 +261,7 @@ export default function UserList() {
       )}
       
       {/* Search and Status Filter */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="relative flex-grow lg:max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -276,7 +276,7 @@ export default function UserList() {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-medium text-gray-600">Filter by Status:</span>
             <div className="flex p-1 bg-gray-100 rounded-lg">
               {['all', 'active', 'inactive', 'suspended'].map(s => (

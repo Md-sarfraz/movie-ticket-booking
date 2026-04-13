@@ -80,8 +80,8 @@ const EditEventPage = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-6">
+    <div className="w-full min-h-screen bg-gray-50 p-3 md:p-6">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-4 md:p-6">
         <button
           onClick={() => navigate("/adminDashboard/eventList")}
           className="flex items-center gap-2 text-gray-600 hover:text-red-600 mb-4"
@@ -89,7 +89,7 @@ const EditEventPage = () => {
           <ArrowLeft size={18} /> Back to Event List
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-800 mb-1">Edit <span className="text-red-500">Event</span></h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Edit <span className="text-red-500">Event</span></h1>
         <p className="text-sm text-gray-500 mb-6">Update event details and optionally replace images</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

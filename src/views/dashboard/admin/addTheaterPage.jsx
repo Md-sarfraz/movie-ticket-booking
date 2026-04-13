@@ -14,9 +14,9 @@ const AddTheaterPage = () => {
   };
 
   return (
-    <div className='w-full min-h-screen bg-gray-50 p-6'>
+    <div className='w-full min-h-screen bg-gray-50 p-3 md:p-6'>
       {/* Header Section */}
-      <div className='bg-white rounded-xl shadow-sm p-6 mb-6'>
+      <div className='bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6'>
         <div className='flex items-center gap-4 mb-4'>
           <button
             onClick={() => navigate('/adminDashboard/theaterList')}
@@ -25,7 +25,7 @@ const AddTheaterPage = () => {
             <ArrowLeft size={24} className='text-gray-600' />
           </button>
           <div>
-            <h1 className='text-3xl font-bold text-gray-800'>
+            <h1 className='text-2xl md:text-3xl font-bold text-gray-800'>
               Add New <span className='text-red-500'>Theater</span>
             </h1>
             <p className='text-sm text-gray-500 mt-1'>
@@ -36,7 +36,7 @@ const AddTheaterPage = () => {
       </div>
 
       {/* Form Section */}
-      <div className='bg-white rounded-xl shadow-sm p-6'>
+      <div className='bg-white rounded-xl shadow-sm p-4 md:p-6'>
         <AddTheaterForm onSuccess={handleSuccess} />
       </div>
     </div>

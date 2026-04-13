@@ -282,7 +282,7 @@ const EditMoviePage = () => {
           <h2 className="flex items-center gap-2 text-base font-bold text-gray-800 mb-3 pb-2 border-b border-gray-100">
             <ImageIcon size={18} className="text-red-500" /> Images
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <ImageUploadBox
               label="Poster Image *"
               preview={form.posterPreview}

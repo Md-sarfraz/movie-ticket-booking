@@ -68,11 +68,11 @@ const EventList = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-6">
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div className="w-full min-h-screen bg-gray-50 p-3 md:p-6">
+      <div className="bg-white rounded-xl shadow-sm p-4 md:p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
               Event<span className="text-red-500">List</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">

@@ -122,7 +122,7 @@ const MovieCard = ({ movie, index, onUpdate, onRemove, onToggleCollapse, onImage
       {!movie.collapsed && (
         <div className="p-4 space-y-5">
           {/* Images row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ImageUploadBox
               label="Poster Image *"
               preview={movie.posterPreview}

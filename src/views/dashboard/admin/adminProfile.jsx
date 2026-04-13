@@ -229,10 +229,10 @@ export default function AdminProfile() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 md:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
           <User className="mr-3 text-red-600" size={32} />
           Admin Profile
         </h1>

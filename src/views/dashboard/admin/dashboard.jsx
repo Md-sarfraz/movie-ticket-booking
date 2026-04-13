@@ -223,7 +223,7 @@ useEffect(() => {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Main Content */}
-      <main className="p-6">
+      <main className="p-3 md:p-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-2">Welcome back, Admin!</h2>
           <p className="text-gray-600">Here's what's happening with your theater today.</p>
@@ -455,7 +455,7 @@ useEffect(() => {
             </div>
 
             {/* Stats Breakdown */}
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-500">Tickets</p>
                 <p className="text-lg font-medium text-gray-800">62%</p>
@@ -673,7 +673,7 @@ useEffect(() => {
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button className="p-4 bg-red-50 hover:bg-red-100 rounded-lg flex flex-col items-center transition-colors">
                 <FaFilm className="text-red-500 text-xl mb-2" />
                 <span className="text-sm text-gray-800">Add Movie</span>

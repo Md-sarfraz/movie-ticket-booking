@@ -146,10 +146,10 @@ export default function Reports() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 md:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
           <BarChart3 className="mr-3 text-red-600" size={32} />
           Reports & Analytics
         </h1>
@@ -157,7 +157,7 @@ export default function Reports() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
         <div className="flex items-center mb-4">
           <Calendar className="mr-2 text-gray-600" size={20} />
           <h2 className="text-lg font-semibold text-gray-800">Date Range</h2>

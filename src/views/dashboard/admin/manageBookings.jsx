@@ -193,12 +193,12 @@ export default function ManageBookings() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-3 md:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center">
               <Ticket className="mr-3 text-red-600" size={32} />
               Manage Bookings
             </h1>
@@ -227,7 +227,7 @@ export default function ManageBookings() {
       )}
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div className="relative">
