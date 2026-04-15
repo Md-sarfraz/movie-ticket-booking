@@ -5,7 +5,7 @@ const Banner = (props) => {
     const bannerHeightClass = compactMobile ? 'h-[40vh] sm:h-[55vh] md:h-[62vh]' : 'h-[52vh] sm:h-[62vh] md:h-[70vh]';
 
     return (
-        <div>
+        <div className="pt-16 md:pt-20">
             <div className="relative w-full bg-[url('/images/bg-banner-img1.png')] bg-cover bg-center">
                 <img src="/images/seat-bg.png" alt="Background" className={`w-full object-cover ${bannerHeightClass}`} />
                 <div className="absolute inset-0 bg-black opacity-70"></div>
@@ -16,7 +16,7 @@ const Banner = (props) => {
                     </p>
                 </div>
             </div>
-            <div className='pt-2'>
+            <div>
                 <img src="/images/image-lines-header.jpg" alt="" />
             </div>
         </div>

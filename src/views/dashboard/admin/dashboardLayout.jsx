@@ -73,6 +73,7 @@ const DashboardLayout = () => {
                     <Route path='/bookings' element={<ManageBookings/>}/>
                     <Route path='/reports' element={<Reports/>}/>
                     <Route path='/profile' element={<AdminProfile/>}/>
+                    <Route path='/settings' element={<AdminProfile/>}/>
                     <Route path='/userProfile' element={<UserProfile/>}/>
                 </Routes>
             </div>

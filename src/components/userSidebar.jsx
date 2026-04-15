@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { FaUser, FaHome, FaFilm, FaCalendarAlt, FaCog, FaSignOutAlt, FaChartBar, FaList } from "react-icons/fa";
+import { FaUser, FaHome, FaFilm, FaCalendarAlt, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { doLogout } from "../auth";
 import { useSelector } from "react-redux";
 
-const UserSidebar = () => {
+const UserSidebar = ({ onNavigate }) => {
   const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,12 +20,22 @@ const UserSidebar = () => {
     doLogout(() => {
       navigate("/");
     });
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
+  const navigateAndClose = (path) => {
+    navigate(path);
+    if (onNavigate) {
+      onNavigate();
+    }
   };
 
   return (
-    <div className="w-64 bg-white flex flex-col h-[85vh] shadow-lg">
+    <div className="w-full bg-white flex flex-col h-full md:h-[85vh] shadow-lg md:shadow-none">
       {/* Profile Section */}
-      <div className="flex flex-col items-center py-8 bg-gray-50">
+      <div className="flex flex-col items-center py-6 md:py-8 bg-gray-50">
         {user?.image ? (
           <div className="relative">
             <img
@@ -48,11 +58,11 @@ const UserSidebar = () => {
       </div>
       
       {/* Navigation Links */}
-      <nav className="flex-grow py-6 px-4 overflow-y-auto">
+      <nav className="flex-grow py-4 md:py-6 px-3 md:px-4 overflow-y-auto">
         <ul className="space-y-2">
           <li>
             <button
-              onClick={() => navigate("/userDashboard/dashboard")}
+              onClick={() => navigateAndClose("/userDashboard/dashboard")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/dashboard") 
                   ? "bg-blue-100 text-blue-600 font-medium" 
@@ -66,7 +76,7 @@ const UserSidebar = () => {
           
           <li>
             <button
-              onClick={() => navigate("/userDashboard/userProfile")}
+              onClick={() => navigateAndClose("/userDashboard/userProfile")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/userProfile") 
                   ? "bg-blue-100 text-blue-600 font-medium" 
@@ -80,7 +90,7 @@ const UserSidebar = () => {
           
           <li>
             <button
-              onClick={() => navigate("/movies")}
+              onClick={() => navigateAndClose("/movies")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/movies") 
                   ? "bg-blue-100 text-blue-600 font-medium" 
@@ -94,7 +104,7 @@ const UserSidebar = () => {
           
           <li>
             <button
-              onClick={() => navigate("/bookings")}
+              onClick={() => navigateAndClose("/userDashboard/bookings")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/bookings") 
                   ? "bg-blue-100 text-blue-600 font-medium" 
@@ -108,35 +118,7 @@ const UserSidebar = () => {
           
           <li>
             <button
-              onClick={() => navigate("/analytics")}
-              className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
-                isActive("/analytics") 
-                  ? "bg-blue-100 text-blue-600 font-medium" 
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <FaChartBar size={18} className={isActive("/analytics") ? "text-blue-500" : "text-gray-500"} />
-              <span>Analytics</span>
-            </button>
-          </li>
-          
-          <li>
-            <button
-              onClick={() => navigate("/task-list")}
-              className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
-                isActive("/task-list") 
-                  ? "bg-blue-100 text-blue-600 font-medium" 
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <FaList size={18} className={isActive("/task-list") ? "text-blue-500" : "text-gray-500"} />
-              <span>Task List</span>
-            </button>
-          </li>
-          
-          <li>
-            <button
-              onClick={() => navigate("/settings")}
+              onClick={() => navigateAndClose("/userDashboard/settings")}
               className={`flex items-center w-full space-x-3 p-3 rounded-lg transition-colors ${
                 isActive("/settings") 
                   ? "bg-blue-100 text-blue-600 font-medium" 

@@ -6,6 +6,9 @@ import About from './views/about';
 import LoginPage from './views/loginPage';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
+import BottomNav from './components/BottomNav';
+import MobileHeader from './components/MobileHeader';
+import SidebarDrawer from './components/SidebarDrawer';
 import Contact from './views/contact';
 import SignUpPage from './views/signUpPage';
 import MovieDetails from './views/movieDetails';
@@ -31,11 +34,16 @@ import TicketPage from './views/ticketPage';
 import UserList from './views/dashboard/admin/userList';
 import { clearAuthStorage, getStoredAuth } from './auth/storage';
 import EventBookingPage from './views/eventBookingPage';
+import Support from './views/support';
+import BookingConfirmationPage from './views/bookingConfirmationPage';
+import ProfilePage from './components/ProfilePage';
+import { useState } from 'react';
 
 function App() {
   //app.jsx
   const dispatch = useDispatch();
   const location = useLocation();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const handleGetUserDetails = async (id) => {
     console.log(id)
@@ -85,12 +93,28 @@ function App() {
     location.pathname.startsWith(route)
   );
 
+  const hideMobileShellRoutes = [
+    '/loginPage',
+    '/signUpPage',
+    '/adminLogin',
+    '/adminDashboard'
+  ];
+
+  const shouldHideMobileShell = hideMobileShellRoutes.some(route =>
+    location.pathname.startsWith(route)
+  );
+
+  const showMobileHeader = !shouldHideMobileShell;
+  const showBottomNav = !shouldHideMobileShell;
+
 
   return (
     <div>
       {/* <ToastContainer/> */}
       <Navbar />
-      < div className=''>
+      {showMobileHeader && <MobileHeader onOpenDrawer={() => setMobileDrawerOpen(true)} />}
+      <SidebarDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
+      <div className={`${showMobileHeader ? 'pt-12 md:pt-0' : ''} ${showBottomNav ? 'pb-20 md:pb-0' : ''}`}>
         <ScrollToTop />
         <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
@@ -98,8 +122,11 @@ function App() {
           <Route path='/about' element={<PageTransition><ProtectedRoute><About /></ProtectedRoute></PageTransition>} />
           <Route path='/movies' element={<PageTransition><ProtectedRoute><Movies /></ProtectedRoute></PageTransition>} />
           <Route path='/contact' element={<PageTransition><ProtectedRoute><Contact /></ProtectedRoute></PageTransition>} />
+          <Route path='/support' element={<PageTransition><ProtectedRoute><Support /></ProtectedRoute></PageTransition>} />
           <Route path='/event' element={<PageTransition><ProtectedRoute><Event /></ProtectedRoute></PageTransition>} />
           <Route path='/ticketPage' element={<PageTransition><ProtectedRoute><TicketPage /></ProtectedRoute></PageTransition>} />
+          <Route path='/booking-confirmation' element={<PageTransition><ProtectedRoute><BookingConfirmationPage /></ProtectedRoute></PageTransition>} />
+          <Route path='/profile' element={<PageTransition><ProtectedRoute><ProfilePage /></ProtectedRoute></PageTransition>} />
           <Route path='/loginPage' element={<PageTransition><LoginPage /></PageTransition>} />
           <Route path='/signUpPage' element={<PageTransition><SignUpPage /></PageTransition>} />
           <Route path='/movieDetails' element={<PageTransition><ProtectedRoute><MovieDetails /></ProtectedRoute></PageTransition>} />
@@ -119,6 +146,7 @@ function App() {
         </AnimatePresence>
         <ToastContainer position="top-center" />
       </div>
+      {showBottomNav && <BottomNav />}
       {!shouldHideFooter && <Footer />}
     </div>
   );

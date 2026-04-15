@@ -1,12 +1,20 @@
 import { myAxios } from "./helper";
 
+const normalizeApiResponse = (responseData) => {
+    return {
+        ...responseData,
+        // Backend returns `status`; some older callers expect `success`.
+        success: responseData?.success ?? responseData?.status ?? false
+    };
+};
+
 // Get admin profile
 export const getAdminProfile = async (userId) => {
     try {
         console.log('🌐 API Call: GET /admin/profile/' + userId);
         const response = await myAxios.get(`/admin/profile/${userId}`);
         console.log('✅ API Response:', response.data);
-        return response.data;
+        return normalizeApiResponse(response.data);
     } catch (error) {
         console.error("❌ Error fetching admin profile:", error);
         console.error("❌ Error response:", error.response?.data);
@@ -18,7 +26,7 @@ export const getAdminProfile = async (userId) => {
 export const updateAdminProfile = async (userId, profileData) => {
     try {
         const response = await myAxios.put(`/admin/profile/${userId}`, profileData);
-        return response.data;
+        return normalizeApiResponse(response.data);
     } catch (error) {
         console.error("Error updating admin profile:", error);
         throw error;
@@ -28,10 +36,13 @@ export const updateAdminProfile = async (userId, profileData) => {
 // Update password
 export const updatePassword = async (userId, passwordData) => {
     try {
+        console.log('🌐 API Call: POST /admin/profile/' + userId + '/password');
         const response = await myAxios.post(`/admin/profile/${userId}/password`, passwordData);
-        return response.data;
+        console.log('✅ Password API Response:', response.data);
+        return normalizeApiResponse(response.data);
     } catch (error) {
         console.error("Error updating password:", error);
+        console.error("Error updating password response:", error.response?.data);
         throw error;
     }
 };
@@ -47,7 +58,7 @@ export const uploadAvatar = async (userId, file) => {
                 'Content-Type': 'multipart/form-data'
             }
         });
-        return response.data;
+        return normalizeApiResponse(response.data);
     } catch (error) {
         console.error("Error uploading avatar:", error);
         throw error;

@@ -139,7 +139,7 @@ const Dashboard = () => {
   const formatTime = (t) => t ? new Date(`2000-01-01T${t}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '—';
 
   return (
-    <div className="p-6 lg:p-8 bg-gray-50 min-h-full">
+    <div className="p-3 md:p-6 lg:p-8 bg-gray-50 min-h-full">
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* ── Welcome Banner ── */}
@@ -199,7 +199,7 @@ const Dashboard = () => {
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mb-3">Booking #{nextBooking.bookingReference}</p>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2">
                             {[
                               { icon: FaCalendarCheck, label: "Date", val: formatDate(nextBooking.show?.showDate) },
                               { icon: FaClock, label: "Time", val: formatTime(nextBooking.show?.showTime) },
@@ -251,7 +251,7 @@ const Dashboard = () => {
                   </button>
                 </div>
                 {movies.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-4">
                     {movies.map((m) => <MovieCard key={m.movieId || m.id} movie={m} navigate={navigate} />)}
                   </div>
                 ) : (

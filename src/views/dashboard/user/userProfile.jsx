@@ -182,9 +182,9 @@ const UserProfile = () => {
         <div className="w-full min-h-screen bg-gray-50 p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Profile Settings</h1>
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-800">Profile Settings</h1>
                         <p className="text-xs text-gray-500 mt-0.5">Manage your account information</p>
                     </div>
                     <button
@@ -215,7 +215,7 @@ const UserProfile = () => {
                     <div className="h-24 bg-gradient-to-r from-red-500 via-red-600 to-red-500 relative">
                         <div className="absolute inset-0 bg-black opacity-10"></div>
                         {/* Profile Image Container */}
-                        <div className="absolute -bottom-10 left-6">
+                        <div className="absolute -bottom-10 left-4 md:left-6">
                             <div className="relative">
                                 <div className="w-20 h-20 rounded-full border-4 border-white bg-white overflow-hidden shadow-lg">
                                     <img
@@ -251,7 +251,7 @@ const UserProfile = () => {
                     </div>
 
                     {/* Content Section */}
-                    <div className="pt-14 px-6 pb-6">
+                    <div className="pt-14 px-4 md:px-6 pb-6">
                         {/* User Name Display */}
                         <div className="mb-6">
                             <h2 className="text-xl font-bold text-gray-800">

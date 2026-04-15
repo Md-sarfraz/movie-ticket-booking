@@ -172,7 +172,7 @@ const EventBookingPage = () => {
             });
 
             const bookingDetails = confirmation.bookingDetails;
-            navigate("/ticketPage", {
+            navigate("/booking-confirmation", {
               state: {
                 bookingId: bookingDetails.bookingReference,
                 paymentId: response.razorpay_payment_id,

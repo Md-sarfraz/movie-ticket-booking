@@ -34,3 +34,37 @@ export const getUserBookings = async (userId) => {
         throw error;
     }
 };
+
+export const cancelUserBooking = async (bookingId, userId) => {
+    try {
+        // userId is intentionally unused; backend derives user identity from JWT.
+        void userId;
+        const response = await myAxios.post('/bookings/cancel-booking', {
+            bookingId,
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        throw error;
+    }
+};
+
+export const getCancellationPreview = async (bookingId) => {
+    try {
+        const response = await myAxios.get(`/bookings/${bookingId}/cancellation-preview`);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching cancellation preview:', error);
+        throw error;
+    }
+};
+
+export const getUserRefundHistory = async (userId) => {
+    try {
+        const response = await myAxios.get(`/bookings/user/${userId}/refunds`);
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching refund history:', error);
+        throw error;
+    }
+};

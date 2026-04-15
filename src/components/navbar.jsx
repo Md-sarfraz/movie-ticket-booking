@@ -146,10 +146,10 @@ const Navbar = ({ onSearch }) => {
   const logoRedirectPath = isAdmin ? '/adminDashboard' : '/';
 
   const desktopNavClass = ({ isActive }) =>
-    `px-3 py-2 rounded-xl transition-all duration-200 ${
+    `inline-flex items-center justify-center px-6 py-2.5 rounded-full leading-none transition-all duration-200 ${
       isActive
-        ? 'text-red-600 bg-red-50 font-semibold'
-        : 'text-gray-700 hover:text-red-500 hover:bg-red-50'
+        ? 'text-red-600 bg-red-100 font-semibold shadow-sm'
+        : 'text-gray-700 hover:text-red-500 hover:bg-white'
     }`;
 
   const mobileNavClass = ({ isActive }) =>
@@ -287,7 +287,7 @@ const Navbar = ({ onSearch }) => {
       </div>
 
       {/* Desktop Navigation */}
-      {!isAdmin && <ul className='hidden lg:flex gap-2 justify-center text-sm font-medium bg-white/70 border border-gray-200 rounded-2xl px-2 py-1 shadow-sm'>
+      {!isAdmin && <ul className='hidden lg:flex items-center gap-1.5 justify-center text-sm font-medium bg-gray-50 border border-gray-300/70 rounded-full p-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.06)]'>
         <li>
           <NavLink to='/' className={desktopNavClass}>Home</NavLink>
         </li>
@@ -395,7 +395,7 @@ const Navbar = ({ onSearch }) => {
         </li>
 
         {/* Mobile Menu Button */}
-        {!isAdmin && <li className='lg:hidden'>
+        {!isAdmin && <li className='hidden'>
           <button
             onClick={toggleMobileMenu}
             className="p-2 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-lg focus:outline-none transition-all duration-200"

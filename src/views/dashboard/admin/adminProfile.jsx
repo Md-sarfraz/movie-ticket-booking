@@ -16,6 +16,7 @@ import { getStoredAuth, setStoredAuth } from '../../../auth/storage';
 export default function AdminProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -160,6 +161,15 @@ export default function AdminProfile() {
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
+
+    setSuccess('');
+    setError('');
+
+    if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
+      setError('All password fields are required');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
     
     if (passwords.newPassword !== passwords.confirmPassword) {
       setError('New password and confirm password do not match');
@@ -175,23 +185,39 @@ export default function AdminProfile() {
 
     try {
       const userId = getUserId();
+      if (!userId) {
+        setError('Unable to identify user. Please login again.');
+        setTimeout(() => setError(''), 3000);
+        return;
+      }
+
+      setIsPasswordUpdating(true);
+      console.log('🔐 Triggering password update for userId:', userId);
+
       const response = await updatePassword(userId, {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword
       });
+
+      console.log('🔐 Password update response payload:', response);
       
-      if (response.success) {
-        setSuccess('Password updated successfully!');
-        setPasswords({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        });
-        setTimeout(() => setSuccess(''), 3000);
+      if (response.status || response.success) {
+        setSuccess(response.message || 'Password updated successfully!');
+        setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setError(response.message || 'Password update failed. Please try again.');
       }
+
+      setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 3000);
     } catch (error) {
+      console.error('🔐 Password update failed:', error);
       setError(error.response?.data?.message || 'Failed to update password');
       setTimeout(() => setError(''), 3000);
+    } finally {
+      setIsPasswordUpdating(false);
     }
   };
 
@@ -513,10 +539,11 @@ export default function AdminProfile() {
               <div className="mt-6 flex justify-end">
                 <button
                   type="submit"
-                  className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  disabled={isPasswordUpdating}
+                  className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <Lock size={18} />
-                  <span>Update Password</span>
+                  <span>{isPasswordUpdating ? 'Updating...' : 'Update Password'}</span>
                 </button>
               </div>
             </form>

@@ -148,7 +148,7 @@ const Event = () => {
             </div>
 
             {/* Category Pills - Simple Row */}
-            <div className="bg-white border-b border-gray-200 sticky top-16 z-10">
+            <div className="bg-white border-b border-gray-200 sticky top-16 md:top-20 z-10">
                 <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 overflow-x-auto whitespace-nowrap flex gap-2">
                     {categories.map(category => (
                         <button

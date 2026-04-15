@@ -42,11 +42,13 @@ const SeatSelection = () => {
   const rowLabels = "ABCDEFGHIJKL".split("");
   const seatsPerRow = 14; // 6 left + aisle + 7 right
   
-  // Fetch seat status from backend (BOOKED = confirmed, LOCKED = payment in progress)
+  // Fetch seat status from backend and poll so cancelled seats reappear quickly.
   useEffect(() => {
+    let isMounted = true;
+
     const fetchSeatStatus = async () => {
       if (!show?.showId) {
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
 
@@ -54,20 +56,28 @@ const SeatSelection = () => {
         const response = await myAxios.get(
           `/bookings/show/${show.showId}/seat-status`
         );
+
+        if (!isMounted) return;
+
         // Response: [{ seatLabel: "A1", status: "BOOKED" }, { seatLabel: "B3", status: "LOCKED" }, ...]
         const seats = response.data || [];
         setBookedSeats(seats.filter(s => s.status === 'BOOKED').map(s => s.seatLabel));
         setLockedSeats(seats.filter(s => s.status === 'LOCKED').map(s => s.seatLabel));
       } catch (error) {
+        if (!isMounted) return;
         console.error("Error fetching seat status:", error);
-        setBookedSeats([]);
-        setLockedSeats([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchSeatStatus();
+    const intervalId = window.setInterval(fetchSeatStatus, 5000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
   }, [show?.showId]);
 
   // Get seat label for a given position
@@ -162,7 +172,7 @@ const SeatSelection = () => {
             // ── STEP 4: Signature valid → booking confirmed in DB → navigate ──
             const confirmed = verifyRes.data?.data || verifyRes.data;
             const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-            navigate('/ticketPage', {
+            navigate('/booking-confirmation', {
               state: {
                 movie,
                 show,
