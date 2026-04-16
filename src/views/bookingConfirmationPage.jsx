@@ -21,7 +21,7 @@ const BookingConfirmationPage = () => {
 
   if (!booking?.movie || !booking?.theater) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 pt-24 pb-24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 pt-24 pb-36 sm:pb-28">
         <div className="bg-white border border-gray-200 rounded-2xl p-6 text-center max-w-md w-full">
           <p className="text-gray-700 font-semibold">No booking data found.</p>
           <button
@@ -36,7 +36,7 @@ const BookingConfirmationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-24 pb-24">
+    <div className="min-h-screen bg-gray-50 px-4 pt-24 pb-36 sm:pb-28 md:pb-10">
       <div className="max-w-2xl mx-auto space-y-4">
         {loading ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-10 flex flex-col items-center justify-center text-center shadow-sm">
@@ -83,16 +83,16 @@ const BookingConfirmationPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-[env(safe-area-inset-bottom)]">
               <button
                 onClick={() => navigate("/userDashboard/bookings")}
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 text-sm font-semibold"
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl py-3 text-sm font-semibold shadow-sm"
               >
                 View My Bookings
               </button>
               <button
                 onClick={() => navigate("/ticketPage", { state: booking })}
-                className="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl py-3 text-sm font-semibold"
+                className="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 rounded-xl py-3 text-sm font-semibold shadow-sm"
               >
                 Open E-Ticket
               </button>

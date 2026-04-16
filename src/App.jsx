@@ -80,6 +80,7 @@ function App() {
     '/payment',
     '/event-booking',
     '/ticketPage',
+    '/booking-confirmation',
     '/seatSelection',
     '/loginPage',
     '/signUpPage',

@@ -34,6 +34,10 @@ const Bookings = () => {
   const [error, setError] = useState("");
   const [bookings, setBookings] = useState([]);
   const [cancelLoadingId, setCancelLoadingId] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancelPreview, setCancelPreview] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [confirmingCancellation, setConfirmingCancellation] = useState(false);
   const [refundByBookingId, setRefundByBookingId] = useState({});
   const [refundHistory, setRefundHistory] = useState([]);
 
@@ -118,20 +122,10 @@ const Bookings = () => {
     return showDateTime.getTime() - Date.now() >= cutoffMillis;
   };
 
-  const buildRefundMessage = (preview) => {
-    const refundAmount = Number(preview?.refundAmount || 0).toFixed(2);
-    const refundableAmount = Number(preview?.refundableAmount || 0).toFixed(2);
-    const deduction = Number(preview?.convenienceFeeDeducted || 0).toFixed(2);
-    const percentage = Number(preview?.refundPercentage || 0).toFixed(0);
-
-    return [
-      `Refund preview`,
-      `Refundable amount (excluding convenience fee): Rs ${refundableAmount}`,
-      `Convenience fee deduction: Rs ${deduction}`,
-      `Applicable refund: ${percentage}% = Rs ${refundAmount}`,
-      ``,
-      `Do you want to proceed with cancellation?`,
-    ].join("\n");
+  const closeCancelModal = () => {
+    setShowCancelModal(false);
+    setCancelPreview(null);
+    setSelectedBooking(null);
   };
 
   const handleCancelBooking = async (booking) => {
@@ -145,6 +139,7 @@ const Bookings = () => {
 
     try {
       setCancelLoadingId(booking.bookingId);
+      setSelectedBooking(booking);
 
       const preview = await getCancellationPreview(booking.bookingId);
       if (!preview?.cancellationAllowed) {
@@ -152,13 +147,26 @@ const Bookings = () => {
         return;
       }
 
-      const ok = window.confirm(buildRefundMessage(preview));
-      if (!ok) return;
+      setCancelPreview(preview);
+      setShowCancelModal(true);
+      return;
+    } catch (err) {
+      console.error("Cancel booking preview failed", err);
+      toast.error(err?.response?.data?.message || "Unable to load cancellation preview.");
+    } finally {
+      setCancelLoadingId(null);
+    }
+  };
 
-      const updated = await cancelUserBooking(booking.bookingId, user.id);
+  const confirmCancellation = async () => {
+    if (!selectedBooking?.bookingId || !user?.id) return;
+
+    try {
+      setConfirmingCancellation(true);
+      const updated = await cancelUserBooking(selectedBooking.bookingId, user.id);
 
       setBookings((prev) => prev.map((item) => {
-        if (item.bookingId !== booking.bookingId) return item;
+        if (item.bookingId !== selectedBooking.bookingId) return item;
         return {
           ...item,
           paymentStatus: updated?.bookingStatus || "CANCELLED",
@@ -167,19 +175,27 @@ const Bookings = () => {
 
       setRefundByBookingId((prev) => ({
         ...prev,
-        [booking.bookingId]: updated,
+        [selectedBooking.bookingId]: {
+          refundStatus: updated?.refundStatus,
+          refundAmount: updated?.refundAmount,
+          refundableAmount: updated?.refundableAmount,
+          convenienceFeeDeducted: updated?.convenienceFeeDeducted,
+          refundPercentage: updated?.refundPercentage,
+          refundReference: updated?.refundReference,
+          failureReason: updated?.failureReason,
+        },
       }));
 
       setRefundHistory((prev) => {
-        const existingIndex = prev.findIndex((item) => item?.bookingId === booking.bookingId);
+        const existingIndex = prev.findIndex((item) => item?.bookingId === selectedBooking.bookingId);
         const nextItem = {
           refundId: Date.now(),
-          bookingId: booking.bookingId,
-          bookingReference: booking.bookingReference,
-          movieTitle: booking?.show?.movie?.title,
-          theaterName: booking?.show?.theater?.name,
-          showDate: booking?.show?.showDate,
-          showTime: booking?.show?.showTime,
+          bookingId: selectedBooking.bookingId,
+          bookingReference: selectedBooking.bookingReference,
+          movieTitle: selectedBooking?.show?.movie?.title,
+          theaterName: selectedBooking?.show?.theater?.name,
+          showDate: selectedBooking?.show?.showDate,
+          showTime: selectedBooking?.show?.showTime,
           refundAmount: updated?.refundAmount || 0,
           refundPercentage: updated?.refundPercentage || 0,
           refundStatus: updated?.refundStatus || "PENDING",
@@ -196,6 +212,8 @@ const Bookings = () => {
         return [nextItem, ...prev];
       });
 
+      closeCancelModal();
+
       if (updated?.refundStatus === "FAILED") {
         toast.warning(updated?.message || "Booking cancelled but refund initiation failed.");
       } else {
@@ -205,7 +223,7 @@ const Bookings = () => {
       console.error("Cancel booking failed", err);
       toast.error(err?.response?.data?.message || "Unable to cancel booking.");
     } finally {
-      setCancelLoadingId(null);
+      setConfirmingCancellation(false);
     }
   };
 
@@ -390,6 +408,118 @@ const Bookings = () => {
           </div>
         )}
       </div>
+
+      {showCancelModal && cancelPreview && selectedBooking && (
+        <div
+          className="fixed inset-0 z-[1105] bg-black/75 backdrop-blur-md flex items-center justify-center px-3 py-3 sm:px-4 sm:py-6"
+          onClick={closeCancelModal}
+        >
+          <div
+            className="w-full max-w-lg max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-3rem)] rounded-[28px] bg-[#1a120d] text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] border border-white/10 overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 pt-5 pb-4 border-b border-white/10 bg-gradient-to-r from-[#23160f] via-[#1a120d] to-[#271913]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-amber-300 font-semibold">Refund preview</p>
+                  <h3 className="mt-1 text-xl sm:text-2xl font-bold leading-tight">
+                    Cancel {selectedBooking?.show?.movie?.title || "this booking"}?
+                  </h3>
+                </div>
+                <button
+                  onClick={closeCancelModal}
+                  className="shrink-0 h-10 w-10 rounded-full border border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white transition flex items-center justify-center"
+                  aria-label="Close cancellation preview"
+                >
+                  <CircleX size={18} />
+                </button>
+              </div>
+
+              <p className="mt-3 text-sm text-white/72 leading-6">
+                {cancelPreview?.message || "Review the refund details before confirming cancellation."}
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+                <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-emerald-200 font-semibold">
+                  Seats released instantly
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/75 font-semibold">
+                  Convenience fee not refunded
+                </span>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+              <div className="rounded-3xl bg-white/5 border border-white/10 p-4 shadow-inner shadow-black/10">
+                <div className="grid grid-cols-1 gap-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-white/65">Refundable amount</span>
+                    <span className="font-semibold text-white">Rs {Number(cancelPreview?.refundableAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-white/65">Convenience fee deducted</span>
+                    <span className="font-semibold text-white">Rs {Number(cancelPreview?.convenienceFeeDeducted || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-white/65">Applicable refund</span>
+                    <span className="font-semibold text-white">{Number(cancelPreview?.refundPercentage || 0).toFixed(0)}% = Rs {Number(cancelPreview?.refundAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-white/65">Current refund status</span>
+                    <span className="font-semibold uppercase tracking-wide text-amber-200">{formatRefundStatus(cancelPreview?.refundStatus)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.03] p-4">
+                <p className="text-sm font-semibold text-white">Booking summary</p>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-2xl bg-black/10 px-3 py-2">
+                    <p className="text-[11px] text-white/50">Movie</p>
+                    <p className="mt-1 font-medium truncate">{selectedBooking?.show?.movie?.title || "-"}</p>
+                  </div>
+                  <div className="rounded-2xl bg-black/10 px-3 py-2">
+                    <p className="text-[11px] text-white/50">Seats</p>
+                    <p className="mt-1 font-medium truncate">{selectedBooking?.seatLabels || "-"}</p>
+                  </div>
+                  <div className="rounded-2xl bg-black/10 px-3 py-2 col-span-2">
+                    <p className="text-[11px] text-white/50">Theater</p>
+                    <p className="mt-1 font-medium truncate">{selectedBooking?.show?.theater?.name || "-"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-white/55 leading-5">
+                Refund status will update in real time after cancellation. If refund initiation fails, the booking remains cancelled and the status will show the failure reason.
+              </p>
+            </div>
+
+            <div className="sticky bottom-0 z-10 grid grid-cols-2 gap-3 px-5 py-4 border-t border-white/10 bg-[#18110d]/95 backdrop-blur">
+              <button
+                onClick={closeCancelModal}
+                disabled={confirmingCancellation}
+                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/85 hover:bg-white/10 disabled:opacity-50"
+              >
+                Keep Booking
+              </button>
+              <button
+                onClick={confirmCancellation}
+                disabled={confirmingCancellation}
+                className="rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3 text-sm font-bold text-[#2d1a00] hover:from-amber-300 hover:to-orange-400 disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg shadow-amber-900/30"
+              >
+                {confirmingCancellation ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  "Confirm Cancel"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
