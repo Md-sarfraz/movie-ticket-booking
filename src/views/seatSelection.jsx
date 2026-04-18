@@ -19,9 +19,11 @@ const getApiErrorMessage = (err, fallback) => {
 };
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const MAX_TICKETS_PER_BOOKING = 5;
 
 const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [seatLimitError, setSeatLimitError] = useState("");
   const [hoveredSeat, setHoveredSeat] = useState(null);
   const [bookedSeats, setBookedSeats] = useState([]);
   const [lockedSeats, setLockedSeats] = useState([]);
@@ -46,7 +48,10 @@ const SeatSelection = () => {
 
   // Get booking data from location state
   const location = useLocation();
-  const { movie, show, theater, time, date } = location.state || {};
+  const { movie, show, theater, time, date, ticketCount } = location.state || {};
+  const desiredSeatCount = Number.isInteger(ticketCount) && ticketCount > 0
+    ? Math.min(ticketCount, MAX_TICKETS_PER_BOOKING)
+    : null;
   
   // Redirect if no booking data
   useEffect(() => {
@@ -133,6 +138,20 @@ const SeatSelection = () => {
     const isSelected = isSeatSelected(rowIndex, seatIndex);
     const seatLabel = getSeatLabel(rowIndex, seatIndex);
 
+    const hardLimit = desiredSeatCount || MAX_TICKETS_PER_BOOKING;
+    if (!isSelected && selectedSeats.length >= hardLimit) {
+      if (desiredSeatCount) {
+        setSeatLimitError(`You selected ${desiredSeatCount} seats. Deselect one seat to choose another.`);
+        return;
+      }
+      setSeatLimitError("You can book maximum 5 tickets at a time");
+      return;
+    }
+
+    if (seatLimitError) {
+      setSeatLimitError("");
+    }
+
     setSelectedSeats((prevSeats) =>
       isSelected
         ? prevSeats.filter(
@@ -156,6 +175,11 @@ const SeatSelection = () => {
 
   const handlePayment = async () => {
     if (selectedSeats.length === 0) return;
+
+    if (desiredSeatCount && selectedSeats.length !== desiredSeatCount) {
+      setSeatLimitError(`Please select exactly ${desiredSeatCount} seat${desiredSeatCount > 1 ? 's' : ''} to continue.`);
+      return;
+    }
 
     const { token } = getStoredAuth();
     if (!token) {
@@ -469,7 +493,9 @@ const SeatSelection = () => {
                         const isLocked = isSeatLocked(rowIndex, seatIndex);
                         const isSelected = isSeatSelected(rowIndex, seatIndex);
                         const seatLabel = getSeatLabel(rowIndex, seatIndex);
-                        const isUnavailable = isBooked || isLocked;
+                        const allowedSeatLimit = desiredSeatCount || MAX_TICKETS_PER_BOOKING;
+                        const reachedSelectionLimit = selectedSeats.length >= allowedSeatLimit;
+                        const isUnavailable = isBooked || isLocked || (reachedSelectionLimit && !isSelected);
 
                         const seatColor = isBooked
                           ? '#d1d5db'
@@ -571,6 +597,12 @@ const SeatSelection = () => {
                 Your selected seats
               </h2>
 
+              {desiredSeatCount && (
+                <div className="mb-3 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700">
+                  Select exactly {desiredSeatCount} seat{desiredSeatCount > 1 ? 's' : ''}
+                </div>
+              )}
+
               {/* Selected Seats Badges */}
               <div className="mb-4">
                 {selectedSeats.length > 0 ? (
@@ -586,6 +618,12 @@ const SeatSelection = () => {
                   </div>
                 ) : (
                   <p className="text-gray-400 text-xs mb-3">No seats selected</p>
+                )}
+
+                {seatLimitError && (
+                  <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+                    {seatLimitError}
+                  </div>
                 )}
               </div>
 
@@ -630,10 +668,10 @@ const SeatSelection = () => {
               <div className="space-y-2">
                 <button
                   onClick={handlePayment}
-                  disabled={selectedSeats.length === 0 || paymentLoading}
+                  disabled={selectedSeats.length === 0 || paymentLoading || (desiredSeatCount ? selectedSeats.length !== desiredSeatCount : false)}
                   className={`
                     w-full py-3 rounded-xl font-bold text-white text-sm transition-all duration-300 flex items-center justify-center gap-2
-                    ${selectedSeats.length > 0 && !paymentLoading
+                    ${selectedSeats.length > 0 && !paymentLoading && (!desiredSeatCount || selectedSeats.length === desiredSeatCount)
                       ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                       : 'bg-gray-300 cursor-not-allowed'
                     }
@@ -641,6 +679,8 @@ const SeatSelection = () => {
                 >
                   {paymentLoading
                     ? ( <><svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Processing...</> )
+                    : desiredSeatCount && selectedSeats.length !== desiredSeatCount
+                      ? `Select ${desiredSeatCount - selectedSeats.length} more seat${desiredSeatCount - selectedSeats.length > 1 ? 's' : ''}`
                     : selectedSeats.length > 0
                       ? `Pay Rs.${(calculateTotal() + calculateTotal() * 0.1 - calculateTotal() * 0.18).toFixed(2)}`
                       : 'Select Seats to Continue'
@@ -649,7 +689,10 @@ const SeatSelection = () => {
 
                 {selectedSeats.length > 0 && (
                   <button
-                    onClick={() => setSelectedSeats([])}
+                    onClick={() => {
+                      setSelectedSeats([]);
+                      setSeatLimitError("");
+                    }}
                     className="w-full py-2 rounded-xl font-medium text-gray-600 text-sm border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
                   >
                     Clear Selection
@@ -662,7 +705,7 @@ const SeatSelection = () => {
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>{stats.available} available</span>
                   <span>{stats.booked} booked</span>
-                  <span>{stats.selected} selected</span>
+                  <span>{stats.selected}/{desiredSeatCount || MAX_TICKETS_PER_BOOKING} selected</span>
                 </div>
               </div>
             </div>

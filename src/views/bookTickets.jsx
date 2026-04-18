@@ -5,6 +5,8 @@ import { getShowsByMovie, getAvailableDates } from "../services/showService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+const MAX_TICKETS_PER_BOOKING = 5;
+
 const BookTickets = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,6 +25,8 @@ const BookTickets = () => {
   const [selectedShow, setSelectedShow] = useState(null);
   const [selectedTheater, setSelectedTheater] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showSeatCountModal, setShowSeatCountModal] = useState(false);
+  const [selectedSeatCount, setSelectedSeatCount] = useState(1);
   const [shows, setShows] = useState([]);
   const [availableDates, setAvailableDates] = useState([]);
   const [groupedShows, setGroupedShows] = useState({});
@@ -157,6 +161,12 @@ const BookTickets = () => {
   const handleContinue = () => {
     if (!selectedShow) return;
 
+    setShowSeatCountModal(true);
+  };
+
+  const handleSeatCountConfirm = () => {
+    if (!selectedShow) return;
+
     navigate("/seatSelection", {
       state: {
         movie,
@@ -169,12 +179,59 @@ const BookTickets = () => {
           month: 'short',
           day: 'numeric'
         }),
+        ticketCount: selectedSeatCount,
       },
     });
+
+    setShowSeatCountModal(false);
   };
 
   return (
     <div className="bg-gray-100 min-h-screen pt-20">
+      {showSeatCountModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 p-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl max-h-[calc(100dvh-2rem)]">
+            <div className="border-b px-6 py-5 text-center">
+              <h3 className="text-2xl font-bold text-gray-900">How many seats?</h3>
+              <p className="mt-1 text-xs text-gray-500">Maximum {MAX_TICKETS_PER_BOOKING} tickets per booking</p>
+            </div>
+
+            <div className="px-4 py-4 sm:px-6 overflow-y-auto">
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
+                {Array.from({ length: MAX_TICKETS_PER_BOOKING }, (_, index) => index + 1).map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => setSelectedSeatCount(count)}
+                    className={`h-10 w-10 rounded-full text-sm font-semibold transition-all sm:h-11 sm:w-11 ${
+                      selectedSeatCount === count
+                        ? "bg-rose-500 text-white shadow"
+                        : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {count}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 border-t bg-white px-4 py-4 sm:flex-row">
+              <button
+                onClick={() => setShowSeatCountModal(false)}
+                className="w-full rounded-lg border border-gray-300 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:w-1/3"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSeatCountConfirm}
+                className="w-full rounded-lg bg-rose-500 py-2.5 text-sm font-semibold text-white hover:bg-rose-600 sm:w-2/3"
+              >
+                Select Seats
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="relative w-full h-64 md:h-96">
         <img
