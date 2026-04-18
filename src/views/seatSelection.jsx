@@ -2,6 +2,23 @@ import React, { useState, useEffect } from "react";
 import { Check, X, Ticket, CreditCard, Film, Calendar, Clock, MapPin, Monitor, ChevronLeft, Users, IndianRupee } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { myAxios } from "@/services/helper";
+import { getStoredAuth } from "@/auth/storage";
+import CheckoutAuthModal from "@/components/CheckoutAuthModal";
+import { useDispatch } from "react-redux";
+import { login as loginRedux } from "@/store/slices/authSlice";
+
+const getApiErrorMessage = (err, fallback) => {
+  const data = err?.response?.data;
+  return (
+    data?.message ||
+    data?.error ||
+    data?.details ||
+    err?.message ||
+    fallback
+  );
+};
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const SeatSelection = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -10,7 +27,10 @@ const SeatSelection = () => {
   const [lockedSeats, setLockedSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalReason, setAuthModalReason] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Load Razorpay script
   useEffect(() => {
@@ -123,27 +143,57 @@ const SeatSelection = () => {
   };
 
   /**
-   * Industry-standard Razorpay payment flow:
-   * 1. Backend creates order (amount computed server-side, tamper-proof)
-   * 2. Frontend opens Razorpay modal with server's order_id
-   * 3. On success, backend verifies HMAC-SHA256 signature (secret key never leaves server)
-   * 4. Backend confirms booking in DB and returns booking details
+   * Payment flow:
+   * 1. Backend creates order (amount computed server-side)
+   * 2. Frontend opens Razorpay checkout
+   * 3. Frontend verifies signature for UX
+   * 4. Backend webhook is source of truth and updates booking status
    */
+  const openAuthModal = (message) => {
+    setAuthModalReason(message || "Please login to continue your booking.");
+    setAuthModalOpen(true);
+  };
+
   const handlePayment = async () => {
     if (selectedSeats.length === 0) return;
+
+    const { token } = getStoredAuth();
+    if (!token) {
+      openAuthModal("Login is required only at checkout. Continue after signing in.");
+      return;
+    }
+
     setPaymentLoading(true);
 
     try {
       // ── STEP 1: Create order on backend (amount calculated server-side) ──
-      const userStr = localStorage.getItem('user');
-      const userId = userStr ? JSON.parse(userStr)?.id : null;
       const orderRes = await myAxios.post('/payment/create-order', {
         showId: show?.showId,
-        seatLabels: selectedSeats.map(s => s.label),
-        userId: userId
+        seatLabels: selectedSeats.map(s => s.label)
       });
 
       const { razorpayOrderId, amountInPaise, currency, keyId, bookingId, bookingReference } = orderRes.data?.data || orderRes.data;
+
+      const fetchBookingByReference = async () => {
+        const response = await myAxios.get(`/bookings/reference/${bookingReference}`);
+        return response?.data?.data || response?.data;
+      };
+
+      const waitForFinalBookingStatus = async () => {
+        const maxAttempts = 10;
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const booking = await fetchBookingByReference();
+          const status = String(booking?.paymentStatus || '').toUpperCase();
+
+          if (status === 'CONFIRMED' || status === 'FAILED') {
+            return booking;
+          }
+
+          await wait(2000);
+        }
+
+        return await fetchBookingByReference();
+      };
 
       // ── STEP 2: Open Razorpay modal with server's order_id ──
       if (!window.Razorpay) {
@@ -169,8 +219,21 @@ const SeatSelection = () => {
               razorpaySignature: response.razorpay_signature
             });
 
-            // ── STEP 4: Signature valid → booking confirmed in DB → navigate ──
-            const confirmed = verifyRes.data?.data || verifyRes.data;
+            // Signature is valid. Wait for webhook to finalize booking state.
+            const verifyData = verifyRes.data?.data || verifyRes.data;
+            if (verifyData === 'WEBHOOK_PENDING') {
+              // Expected state in webhook-driven flow.
+            }
+
+            const confirmed = await waitForFinalBookingStatus();
+            const confirmedStatus = String(confirmed?.paymentStatus || '').toUpperCase();
+
+            if (confirmedStatus !== 'CONFIRMED') {
+              alert('Payment received, but booking is still processing. Please check My Bookings in a few seconds.');
+              navigate('/userDashboard/bookings');
+              return;
+            }
+
             const localUser = JSON.parse(localStorage.getItem('user') || '{}');
             navigate('/booking-confirmation', {
               state: {
@@ -181,21 +244,28 @@ const SeatSelection = () => {
                 date,
                 seats:           confirmed.seatLabels?.split(',') || [],
                 seatLabels:      confirmed.seatLabels?.split(',') || [],
-                totalPrice:      confirmed.totalAmount,
-                basePrice:       confirmed.baseAmount,
-                convenienceFee:  confirmed.convenienceFee,
+                totalPrice:      confirmed.totalAmount || 0,
+                basePrice:       confirmed.baseAmount || 0,
+                convenienceFee:  confirmed.convenienceFee || 0,
                 discount:        confirmed.discount || 0,
                 bookingId:       confirmed.bookingReference,
                 paymentId:       confirmed.razorpayPaymentId,
                 customerName:    localUser?.name || localUser?.fullName || '',
-                paymentStatus:   'PAID',
+                paymentStatus:   confirmed.paymentStatus || 'CONFIRMED',
                 showPostPaymentFlow: true,
               }
             });
           } catch (verifyErr) {
             console.error('Payment verification failed:', verifyErr);
-            alert('Payment verification failed. Please contact support with your payment ID: '
-              + response.razorpay_payment_id);
+            if (verifyErr?.response?.status === 401) {
+              openAuthModal("Your session expired during checkout. Please login again to continue.");
+              return;
+            }
+            const verifyMessage = getApiErrorMessage(
+              verifyErr,
+              'Payment verification failed. Please contact support.'
+            );
+            alert(`${verifyMessage}\nPayment ID: ${response.razorpay_payment_id}`);
           } finally {
             setPaymentLoading(false);
           }
@@ -226,14 +296,24 @@ const SeatSelection = () => {
         } catch (failErr) {
           console.warn('Could not mark booking as failed on backend:', failErr);
         }
-        alert(`Payment Failed: ${response.error.description || 'Something went wrong'}`);
+        const reason =
+          response?.error?.description ||
+          response?.error?.reason ||
+          response?.error?.code ||
+          'Something went wrong';
+        alert(`Payment Failed: ${reason}`);
         setPaymentLoading(false);
       });
       razorpay.open();
 
     } catch (err) {
       console.error('Error initiating payment:', err);
-      const msg = err?.response?.data?.error || err.message || 'Failed to initiate payment';
+      if (err?.response?.status === 401) {
+        openAuthModal("Your session expired. Please login again to continue payment.");
+        setPaymentLoading(false);
+        return;
+      }
+      const msg = getApiErrorMessage(err, 'Failed to initiate payment');
       alert(`Error: ${msg}`);
       setPaymentLoading(false);
     }
@@ -284,6 +364,17 @@ const SeatSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-6">
+      <CheckoutAuthModal
+        open={authModalOpen}
+        reason={authModalReason}
+        onClose={() => setAuthModalOpen(false)}
+        onAuthSuccess={(userData) => {
+          dispatch(loginRedux(userData));
+          setAuthModalOpen(false);
+          handlePayment();
+        }}
+      />
+
       {/* Movie Info Card */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 mt-2">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 flex items-center gap-4">

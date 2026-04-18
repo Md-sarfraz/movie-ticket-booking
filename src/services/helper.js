@@ -24,11 +24,13 @@ myAxios.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Clear expired/invalid token and redirect to login
+            // Clear expired/invalid token but let UI decide how to recover.
             clearAuthStorage();
-            const isAuthEndpoint = error.config?.url?.includes('/auth/');
-            if (!isAuthEndpoint) {
-                window.location.href = '/loginPage';
+            error.isAuthExpired = true;
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('bookshow:auth-expired', {
+                    detail: { url: error.config?.url || '' }
+                }));
             }
         }
         return Promise.reject(error);

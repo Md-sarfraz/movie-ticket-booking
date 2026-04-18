@@ -121,7 +121,7 @@ function App() {
         <Routes location={location} key={location.pathname}>
           <Route path='/' element={<PageTransition><Home /></PageTransition>} />
           <Route path='/about' element={<PageTransition><ProtectedRoute><About /></ProtectedRoute></PageTransition>} />
-          <Route path='/movies' element={<PageTransition><ProtectedRoute><Movies /></ProtectedRoute></PageTransition>} />
+          <Route path='/movies' element={<PageTransition><Movies /></PageTransition>} />
           <Route path='/contact' element={<PageTransition><ProtectedRoute><Contact /></ProtectedRoute></PageTransition>} />
           <Route path='/support' element={<PageTransition><ProtectedRoute><Support /></ProtectedRoute></PageTransition>} />
           <Route path='/event' element={<PageTransition><ProtectedRoute><Event /></ProtectedRoute></PageTransition>} />
@@ -130,12 +130,12 @@ function App() {
           <Route path='/profile' element={<PageTransition><ProtectedRoute><ProfilePage /></ProtectedRoute></PageTransition>} />
           <Route path='/loginPage' element={<PageTransition><LoginPage /></PageTransition>} />
           <Route path='/signUpPage' element={<PageTransition><SignUpPage /></PageTransition>} />
-          <Route path='/movieDetails' element={<PageTransition><ProtectedRoute><MovieDetails /></ProtectedRoute></PageTransition>} />
+          <Route path='/movieDetails' element={<PageTransition><MovieDetails /></PageTransition>} />
           <Route path='/eventDetails' element={<PageTransition><ProtectedRoute><EventDetails /></ProtectedRoute></PageTransition>} />
           <Route path='/eventDetails/:eventId' element={<PageTransition><ProtectedRoute><EventDetails /></ProtectedRoute></PageTransition>} />
           <Route path='/event-booking' element={<PageTransition><ProtectedRoute><EventBookingPage /></ProtectedRoute></PageTransition>} />
-          <Route path='/bookTickets' element={<PageTransition><ProtectedRoute><BookTickets /></ProtectedRoute></PageTransition>} />
-          <Route path='/seatSelection' element={<PageTransition><ProtectedRoute><SeatSelection /></ProtectedRoute></PageTransition>} />
+          <Route path='/bookTickets' element={<PageTransition><BookTickets /></PageTransition>} />
+          <Route path='/seatSelection' element={<PageTransition><SeatSelection /></PageTransition>} />
           <Route path='/payment' element={<PageTransition><ProtectedRoute><PaymentPage /></ProtectedRoute></PageTransition>} />
           <Route path='/paymentDetails' element={<PageTransition><ProtectedRoute><PaymentDetails /></ProtectedRoute></PageTransition>} />
           <Route path='/adminLogin' element={<PageTransition><AdminLogin /></PageTransition>} />
