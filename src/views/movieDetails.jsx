@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AboutMovieSlider from '../components/aboutMovieSlider';
 import { FaPlay } from 'react-icons/fa';
+import BackButton from '../components/BackButton';
 
 const MovieDetails = () => {
   const navigate = useNavigate();
@@ -54,9 +55,12 @@ useEffect(() => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-12">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-20 pb-12">
+      <div className="mb-4">
+        <BackButton />
+      </div>
       <div
-        className="relative w-full min-h-[72vh] md:min-h-[78vh] flex flex-col md:flex-row md:items-center text-white rounded-xl mx-auto mt-20 overflow-hidden bg-cover bg-center"
+        className="relative w-full min-h-[72vh] md:min-h-[78vh] flex flex-col md:flex-row md:items-center text-white rounded-xl mx-auto overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage: `url(${movie.backgroundImageUrl || movie.postUrl})`,
         }}

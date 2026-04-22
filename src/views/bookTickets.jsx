@@ -4,6 +4,7 @@ import { myAxios } from "../services/helper";
 import { getShowsByMovie, getAvailableDates } from "../services/showService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import BackButton from "../components/BackButton";
 
 const MAX_TICKETS_PER_BOOKING = 5;
 
@@ -188,6 +189,9 @@ const BookTickets = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen pt-20">
+      <div className="mx-auto w-full max-w-7xl px-3 pb-2 sm:px-4 lg:px-6">
+        <BackButton />
+      </div>
       {showSeatCountModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 p-4">
           <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-2xl max-h-[calc(100dvh-2rem)]">

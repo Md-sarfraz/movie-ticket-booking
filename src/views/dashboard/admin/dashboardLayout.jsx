@@ -17,6 +17,7 @@ import AdminProfile from './adminProfile'
 import EventList from './eventList'
 import AddEventPage from './addEventPage'
 import EditEventPage from './editEventPage'
+import BackButton from '../../../components/BackButton'
 
 
 const DashboardLayout = () => {
@@ -69,6 +70,9 @@ const DashboardLayout = () => {
 
             <main className="h-full min-w-0 overflow-y-auto overflow-x-hidden md:ml-[260px]">
                 <div className="min-h-full">
+                    <div className="sticky top-0 z-30 border-b border-gray-200 bg-white/90 px-4 py-3 backdrop-blur md:px-6">
+                        <BackButton className="bg-white" />
+                    </div>
                     <Routes>
                         <Route path='/' element={<Dashboard/>}/>
                         <Route path='/dashboard' element={<Dashboard/>}/>

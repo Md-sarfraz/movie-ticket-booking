@@ -38,6 +38,7 @@ import Support from './views/support';
 import BookingConfirmationPage from './views/bookingConfirmationPage';
 import ProfilePage from './components/ProfilePage';
 import { useState } from 'react';
+import Breadcrumb from './components/Breadcrumb';
 
 function App() {
   //app.jsx
@@ -117,6 +118,9 @@ function App() {
       <SidebarDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
       <div className={`${showMobileHeader ? 'pt-12 md:pt-0' : ''} ${showBottomNav ? 'pb-20 md:pb-0' : ''}`}>
         <ScrollToTop />
+        <div className='mt-16 md:mt-20'>
+          <Breadcrumb />
+        </div>
         <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path='/' element={<PageTransition><Home /></PageTransition>} />
