@@ -12,7 +12,7 @@ import { setSelectedCity } from '../store/slices/citySlice';
 import BookTheShowLogo from './bookTheShowLogo';
 import { FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { myAxios } from '../services/helper';
-import NotificationBell from './NotificationBell';
+import NotificationIcon from './NotificationIcon';
 import { clearAuthStorage, getStoredAuth } from '../auth/storage';
 
 const Navbar = ({ onSearch }) => {
@@ -146,7 +146,7 @@ const Navbar = ({ onSearch }) => {
   const logoRedirectPath = isAdmin ? '/adminDashboard' : '/';
 
   const desktopNavClass = ({ isActive }) =>
-    `inline-flex items-center justify-center px-6 py-2.5 rounded-full leading-none transition-all duration-200 ${
+    `inline-flex items-center justify-center whitespace-nowrap px-4 xl:px-5 py-2.5 rounded-full leading-none transition-all duration-200 ${
       isActive
         ? 'text-red-600 bg-red-100 font-semibold shadow-sm'
         : 'text-gray-700 hover:text-red-500 hover:bg-white'
@@ -160,28 +160,29 @@ const Navbar = ({ onSearch }) => {
     }`;
 
   return (
-    <div className='flex h-16 md:h-20 items-center justify-between border-b border-gray-200/80 shadow-[0_6px_24px_rgba(15,23,42,0.08)] fixed top-0 left-0 w-full bg-white/90 backdrop-blur-xl z-[1000] px-4 md:px-8'>
+    <div className='fixed top-0 left-0 z-[1000] w-full border-b border-gray-200/80 bg-white/90 shadow-[0_6px_24px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
+      <div className='mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 md:h-20 md:px-6 lg:gap-4 lg:px-8'>
       {/* Left section - Logo */}
-      <div className='flex items-center gap-3 md:gap-6'>
-        <Link to={logoRedirectPath} aria-label={isAdmin ? 'Go to admin dashboard' : 'Go to home page'}>
+      <div className='flex min-w-0 items-center gap-2 sm:gap-3 md:gap-5'>
+        <Link to={logoRedirectPath} aria-label={isAdmin ? 'Go to admin dashboard' : 'Go to home page'} className='shrink-0'>
           <BookTheShowLogo/>
         </Link>
         
         {!isAdmin && (
-          <div className='relative flex items-center'>
+          <div className='relative flex min-w-0 items-center'>
             <button 
-              className='flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 group shadow-sm' 
+              className='group flex min-w-0 items-center gap-1.5 rounded-xl border border-gray-200 px-2.5 py-2 shadow-sm transition-all duration-200 hover:border-red-300 hover:bg-red-50 sm:gap-2 sm:px-3' 
               onClick={() => handleShowMenu()}
             >
               <i className="fa-solid fa-location-dot text-base md:text-lg text-red-500 group-hover:scale-110 transition-transform"></i>
-              <span className='text-xs md:text-sm font-medium text-gray-700'>
+              <span className='max-w-[78px] truncate text-xs font-medium text-gray-700 sm:max-w-[120px] md:text-sm'>
                 {selectedCity?.name || 'Select City'}
               </span>
-              <i className="fa-solid fa-chevron-down text-xs text-gray-400 group-hover:text-red-500 transition-colors"></i>
+              <i className="fa-solid fa-chevron-down hidden text-xs text-gray-400 transition-colors group-hover:text-red-500 sm:block"></i>
             </button>
             {
               isShowMenu &&
-              <div className="bg-white max-h-[calc(100vh-6rem)] overflow-y-auto w-72 md:w-80 lg:w-96 p-4 rounded-lg shadow-xl border border-gray-200 absolute top-full left-0 mt-2 z-50 hide-scrollbar">
+              <div className="fixed inset-x-2 top-[4.5rem] z-[1100] max-h-[calc(100vh-5rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-xl hide-scrollbar md:absolute md:inset-x-auto md:left-0 md:top-full md:z-50 md:mt-2 md:max-h-[calc(100vh-6rem)] md:w-80 lg:w-96">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Select City</h2>
                 <button className="text-gray-500 hover:text-gray-700 text-xl font-bold" onClick={() => handleShowMenu()}>&times;</button>
@@ -287,7 +288,7 @@ const Navbar = ({ onSearch }) => {
       </div>
 
       {/* Desktop Navigation */}
-      {!isAdmin && <ul className='hidden lg:flex items-center gap-1.5 justify-center text-sm font-medium bg-gray-50 border border-gray-300/70 rounded-full p-1.5 shadow-[0_2px_10px_rgba(15,23,42,0.06)]'>
+      {!isAdmin && <ul className='hidden lg:flex items-center justify-center gap-1.5 rounded-full border border-gray-300/70 bg-gray-50 p-1.5 text-sm font-medium shadow-[0_2px_10px_rgba(15,23,42,0.06)]'>
         <li>
           <NavLink to='/' className={desktopNavClass}>Home</NavLink>
         </li>
@@ -306,23 +307,26 @@ const Navbar = ({ onSearch }) => {
       </ul>}
 
       {/* Right section */}
-      <ul className='flex flex-row gap-3 md:gap-6 items-center'>
+      <ul className='flex shrink-0 flex-row items-center gap-2 sm:gap-3 md:gap-4 lg:gap-5'>
         {/* Search - hidden on very small screens */}
-        <li className={`relative hidden sm:block ${isAdmin ? 'hidden' : ''}`}>
-          <SearchBar/>
+        <li className={`relative hidden md:block lg:hidden xl:block ${isAdmin ? 'hidden' : ''}`}>
+          <SearchBar className='w-[200px] lg:w-[220px] xl:w-[260px]' />
         </li>
 
         {isAdmin && (
           <li className='flex items-center'>
-            <NotificationBell />
+            <NotificationIcon />
           </li>
         )}
         
         {/* Login/User Profile */}
         <li className="flex items-center justify-center">
           {!isLoggedIn() ? 
-            <button className="relative overflow-hidden text-white text-xs font-semibold bg-gradient-to-r from-red-500 to-pink-600 rounded-lg px-4 py-2 hover:from-red-600 hover:to-pink-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-              <Link to='LoginPage'>Login/Register</Link>
+            <button className="relative overflow-hidden rounded-lg bg-gradient-to-r from-red-500 to-pink-600 px-3 py-2 text-[11px] font-semibold text-white shadow-md transition-all duration-300 hover:from-red-600 hover:to-pink-700 hover:shadow-lg sm:px-4 sm:text-xs">
+              <Link to='LoginPage'>
+                <span className='sm:hidden'>Login</span>
+                <span className='hidden sm:inline'>Login/Register</span>
+              </Link>
             </button>
             : 
             <div 
@@ -332,7 +336,7 @@ const Navbar = ({ onSearch }) => {
               onMouseLeave={() => !showLogoutConfirm && setShowProfileDropdown(false)}
             >
               {/* Avatar trigger */}
-              <div className='flex flex-row justify-center items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 transition-all cursor-pointer'>
+              <div className='flex cursor-pointer flex-row items-center justify-center gap-1.5 rounded-lg px-1.5 py-1 transition-all hover:bg-gray-50 sm:gap-2 sm:px-2'>
                 <div className='w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-600 p-0.5 flex justify-center items-center overflow-hidden shadow-md hover:shadow-lg transition-shadow'>
                   <div className='w-full h-full rounded-full bg-white flex justify-center items-center overflow-hidden'>
                     <img
@@ -343,8 +347,8 @@ const Navbar = ({ onSearch }) => {
                     />
                   </div>
                 </div>
-                <p className='text-gray-700 text-sm font-medium hidden md:block'>{user?.username || user?.firstName}</p>
-                <svg className={`w-3 h-3 text-gray-400 transition-transform duration-200 hidden md:block ${showProfileDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <p className='hidden max-w-[100px] truncate text-sm font-medium text-gray-700 lg:block'>{user?.username || user?.firstName}</p>
+                <svg className={`hidden h-3 w-3 text-gray-400 transition-transform duration-200 lg:block ${showProfileDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </div>
 
               {/* Dropdown */}
@@ -503,6 +507,7 @@ const Navbar = ({ onSearch }) => {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

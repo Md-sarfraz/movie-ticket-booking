@@ -1,10 +1,38 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import websocketService from '../services/websocket-service';
-import { getAdminNotifications, markNotificationRead } from '../services/notification-service';
+import {
+  getAdminNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from '../services/notification-service';
 import { getStoredAuth } from '../auth/storage';
 
 const NotificationContext = createContext(null);
+
+const normalizeNotification = (item) => {
+  if (!item || typeof item !== 'object') {
+    return null;
+  }
+
+  const id = item.id != null ? String(item.id) : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  return {
+    id,
+    message: item.message ?? '',
+    isRead: Boolean(item.isRead),
+    createdAt: item.createdAt ?? new Date().toISOString(),
+    type: item.type ?? 'SYSTEM',
+  };
+};
+
+const mapAndSortNotifications = (items) => {
+  const normalized = (Array.isArray(items) ? items : [])
+    .map(normalizeNotification)
+    .filter(Boolean);
+
+  return normalized.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
@@ -19,13 +47,12 @@ export const NotificationProvider = ({ children }) => {
     }
 
     let mounted = true;
-    let pollTimer;
 
     const loadNotifications = async () => {
       try {
         const items = await getAdminNotifications();
         if (mounted) {
-          setNotifications(Array.isArray(items) ? items : []);
+          setNotifications(mapAndSortNotifications(items));
         }
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
@@ -33,14 +60,22 @@ export const NotificationProvider = ({ children }) => {
     };
 
     loadNotifications();
-    pollTimer = window.setInterval(loadNotifications, 15000);
 
     websocketService.connect(
-      (notification) => {
-        if (!notification || typeof notification !== 'object') {
+      (incomingNotification) => {
+        const notification = normalizeNotification(incomingNotification);
+        if (!notification) {
           return;
         }
-        setNotifications((prev) => [notification, ...(Array.isArray(prev) ? prev : [])]);
+
+        setNotifications((prev) => {
+          const existing = Array.isArray(prev) ? prev : [];
+          const duplicate = existing.some((item) => item.id === notification.id);
+          if (duplicate) {
+            return existing;
+          }
+          return [notification, ...existing];
+        });
       },
       undefined,
       (error) => {
@@ -50,9 +85,6 @@ export const NotificationProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      if (pollTimer) {
-        window.clearInterval(pollTimer);
-      }
       try {
         websocketService.disconnect();
       } catch (error) {
@@ -69,20 +101,40 @@ export const NotificationProvider = ({ children }) => {
       }
 
       setNotifications((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
+        (Array.isArray(prev) ? prev : []).map((item) =>
+          item.id === String(id) ? { ...item, isRead: true } : item
+        )
       );
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
   };
 
+  const markAllAsRead = async () => {
+    setNotifications((prev) =>
+      (Array.isArray(prev) ? prev : []).map((item) => ({ ...item, isRead: true }))
+    );
+
+    try {
+      await markAllNotificationsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+      try {
+        const refreshed = await getAdminNotifications();
+        setNotifications(mapAndSortNotifications(refreshed));
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after mark-all failure:', refreshError);
+      }
+    }
+  };
+
   const unreadCount = useMemo(
-    () => notifications.filter((item) => !item.isRead).length,
+    () => notifications.filter((item) => item && !item.isRead).length,
     [notifications]
   );
 
   const value = useMemo(
-    () => ({ notifications, unreadCount, markAsRead }),
+    () => ({ notifications, unreadCount, markAsRead, markAllAsRead }),
     [notifications, unreadCount]
   );
 

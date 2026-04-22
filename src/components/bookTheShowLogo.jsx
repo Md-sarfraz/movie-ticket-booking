@@ -14,10 +14,10 @@ export default function BookTheShowLogo() {
       
       {/* Text */}
       <div className="flex items-center space-x-0.5">
-        <span className="text-lg md:text-xl font-extrabold bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+        <span className="text-base sm:text-lg md:text-xl font-extrabold bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
           Ticket
         </span>
-        <span className="text-lg md:text-xl font-extrabold bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
+        <span className="text-base sm:text-lg md:text-xl font-extrabold bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 bg-clip-text text-transparent">
           Flix
         </span>
       </div>

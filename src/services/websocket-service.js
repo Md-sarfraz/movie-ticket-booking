@@ -2,6 +2,8 @@ import SockJS from 'sockjs-client/dist/sockjs';
 import StompJs from 'stompjs/lib/stomp.js';
 import { BASE_URL } from './helper';
 
+const NOTIFICATION_TOPIC = '/topic/new_notification';
+
 const getSocketUrl = () => {
   const cleaned = BASE_URL.replace(/\/$/, '');
   const origin = cleaned.replace(/\/api\/v1$/, '');
@@ -30,11 +32,20 @@ class WebSocketService {
       {},
       () => {
         this.isConnecting = false;
-        this.subscription = this.client.subscribe('/topic/admin', (message) => {
+        this.subscription = this.client.subscribe(NOTIFICATION_TOPIC, (message) => {
           if (!message?.body) {
             return;
           }
-          onMessage?.(JSON.parse(message.body));
+
+          try {
+            const payload = JSON.parse(message.body);
+            if (payload?.event && payload.event !== 'new_notification') {
+              return;
+            }
+            onMessage?.(payload);
+          } catch (parseError) {
+            onError?.(parseError);
+          }
         });
         onConnected?.();
       },
