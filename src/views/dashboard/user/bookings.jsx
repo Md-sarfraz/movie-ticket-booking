@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { CalendarDays, Clock3, MapPin, Ticket, Loader2, IndianRupee, CircleX, Armchair } from "lucide-react";
 import { cancelUserBooking, getCancellationPreview, getUserBookings, getUserRefundHistory } from "@/services/booking-service";
+import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 
 const statusStyle = {
@@ -12,9 +13,48 @@ const statusStyle = {
   COMPLETED: "bg-slate-100 text-slate-700 border border-slate-200",
 };
 
+const parseBackendDateTime = (value) => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value === "number") {
+    const parsedFromNumber = new Date(value);
+    return Number.isNaN(parsedFromNumber.getTime()) ? null : parsedFromNumber;
+  }
+
+  if (typeof value !== "string") return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  // Backend LocalDateTime often arrives as "yyyy-MM-dd HH:mm:ss".
+  const normalized = trimmed.includes("T") ? trimmed : trimmed.replace(" ", "T");
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getBookingCreatedAtDate = (booking) => parseBackendDateTime(booking?.createdAt || booking?.bookingDate);
+
 const formatDate = (date) => {
-  if (!date) return "-";
-  return new Date(date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const parsed = parseBackendDateTime(date);
+  if (!parsed) return "-";
+  return parsed.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+};
+
+const formatDateTime = (date) => {
+  const parsed = parseBackendDateTime(date);
+  if (!parsed) return "-";
+  return parsed.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
 const formatTime = (time) => {
@@ -26,6 +66,8 @@ const formatRefundStatus = (status) => {
   if (!status || status === "PENDING") return "REFUND_INITIATED";
   return status;
 };
+
+const CANCELLATION_WINDOW_HOURS = Number(import.meta.env.VITE_CANCELLATION_WINDOW_HOURS || 2);
 
 const Bookings = () => {
   const navigate = useNavigate();
@@ -61,7 +103,11 @@ const Bookings = () => {
 
         if (!mounted) return;
         const list = Array.isArray(bookingData) ? bookingData : [];
-        list.sort((a, b) => new Date(b.createdAt || b.bookingDate) - new Date(a.createdAt || a.bookingDate));
+        list.sort((a, b) => {
+          const aTime = getBookingCreatedAtDate(a)?.getTime() || 0;
+          const bTime = getBookingCreatedAtDate(b)?.getTime() || 0;
+          return bTime - aTime;
+        });
         setBookings(list);
 
         const refunds = Array.isArray(refundData) ? refundData : [];
@@ -114,12 +160,41 @@ const Bookings = () => {
     return showDateTime >= new Date();
   };
 
-  const isCancellationAllowed = (booking) => {
-    if (!booking || booking.paymentStatus !== "CONFIRMED") return false;
-    if (!booking?.show?.showDate || !booking?.show?.showTime) return false;
-    const showDateTime = new Date(`${booking.show.showDate}T${booking.show.showTime}`);
-    const cutoffMillis = 2 * 60 * 60 * 1000;
-    return showDateTime.getTime() - Date.now() >= cutoffMillis;
+  const getCancellationState = (booking) => {
+    const hours = Number.isFinite(CANCELLATION_WINDOW_HOURS) && CANCELLATION_WINDOW_HOURS >= 0
+      ? CANCELLATION_WINDOW_HOURS
+      : 2;
+
+    if (!booking || booking.paymentStatus !== "CONFIRMED") {
+      return { canCancel: false, expired: false, message: "" };
+    }
+
+    if (!booking?.createdAt) {
+      return {
+        canCancel: false,
+        expired: true,
+        message: `Cancellation not allowed after ${hours} hours`,
+      };
+    }
+
+    const bookingTime = parseBackendDateTime(booking.createdAt);
+    if (!bookingTime) {
+      return {
+        canCancel: false,
+        expired: true,
+        message: `Cancellation not allowed after ${hours} hours`,
+      };
+    }
+
+    const elapsedMs = Date.now() - bookingTime.getTime();
+    const cutoffMs = hours * 60 * 60 * 1000;
+    const expired = elapsedMs > cutoffMs;
+
+    return {
+      canCancel: !expired,
+      expired,
+      message: expired ? `Cancellation not allowed after ${hours} hours` : "",
+    };
   };
 
   const closeCancelModal = () => {
@@ -131,9 +206,9 @@ const Bookings = () => {
   const handleCancelBooking = async (booking) => {
     if (!user?.id) return;
 
-    const allowCancel = isCancellationAllowed(booking);
-    if (!allowCancel) {
-      toast.info("Only upcoming confirmed bookings can be cancelled.");
+    const cancellationState = getCancellationState(booking);
+    if (!cancellationState.canCancel) {
+      toast.info(cancellationState.message || "Cancellation window expired");
       return;
     }
 
@@ -292,7 +367,8 @@ const Bookings = () => {
         {!loading && !error && bookings.length > 0 && (
           <div className="space-y-3 sm:space-y-4">
             {bookings.map((booking) => {
-              const canCancel = isCancellationAllowed(booking);
+              const cancellationState = getCancellationState(booking);
+              const canCancel = cancellationState.canCancel;
               const refundInfo = refundByBookingId[booking.bookingId];
               return (
                 <article
@@ -303,6 +379,7 @@ const Bookings = () => {
                     <div className="min-w-0">
                       <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">{booking?.show?.movie?.title || "Untitled"}</h2>
                       <p className="text-xs text-gray-500 mt-1">Ref: {booking?.bookingReference || "-"}</p>
+                      <p className="text-xs text-gray-500 mt-1">Booked on: {formatDateTime(booking?.createdAt || booking?.bookingDate)}</p>
                     </div>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${statusStyle[booking.paymentStatus] || statusStyle.PENDING}`}>
                       {booking.paymentStatus || "PENDING"}
@@ -368,10 +445,10 @@ const Bookings = () => {
                       View Ticket
                     </button>
 
-                    {canCancel && (
+                    {booking.paymentStatus === "CONFIRMED" && (
                       <button
                         onClick={() => handleCancelBooking(booking)}
-                        disabled={cancelLoadingId === booking.bookingId}
+                        disabled={!canCancel || cancelLoadingId === booking.bookingId}
                         className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
                       >
                         {cancelLoadingId === booking.bookingId ? (
@@ -382,12 +459,18 @@ const Bookings = () => {
                         ) : (
                           <>
                             <CircleX size={14} />
-                            Cancel Ticket
+                            {canCancel ? "Cancel Ticket" : "Cancel Window Expired"}
                           </>
                         )}
                       </button>
                     )}
                   </div>
+
+                  {booking.paymentStatus === "CONFIRMED" && !canCancel && cancellationState.message && (
+                    <p className="mt-2 text-xs font-medium text-amber-700">
+                      {cancellationState.message}
+                    </p>
+                  )}
 
                   {booking.paymentStatus === "CANCELLED" && refundInfo && (
                     <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm">
@@ -411,101 +494,104 @@ const Bookings = () => {
 
       {showCancelModal && cancelPreview && selectedBooking && (
         <div
-          className="fixed inset-0 z-[1105] bg-black/75 backdrop-blur-md flex items-center justify-center px-3 py-3 sm:px-4 sm:py-6"
+          className="fixed inset-0 z-[1105] bg-white/70 backdrop-blur-sm flex items-center justify-center px-3 py-3 sm:px-4 sm:py-6"
           onClick={closeCancelModal}
         >
           <div
-            className="w-full max-w-lg max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-3rem)] rounded-[28px] bg-[#1a120d] text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] border border-white/10 overflow-hidden flex flex-col"
+            className="w-full max-w-xl max-h-[calc(100vh-1.5rem)] sm:max-h-[calc(100vh-3rem)] rounded-2xl bg-white border border-gray-200 shadow-xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 pt-5 pb-4 border-b border-white/10 bg-gradient-to-r from-[#23160f] via-[#1a120d] to-[#271913]">
+            <div className="px-5 pt-5 pb-4 border-b border-gray-200 bg-white">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-amber-300 font-semibold">Refund preview</p>
-                  <h3 className="mt-1 text-xl sm:text-2xl font-bold leading-tight">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-red-500 font-semibold">Refund preview</p>
+                  <h3 className="mt-1 text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
                     Cancel {selectedBooking?.show?.movie?.title || "this booking"}?
                   </h3>
                 </div>
                 <button
                   onClick={closeCancelModal}
-                  className="shrink-0 h-10 w-10 rounded-full border border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white transition flex items-center justify-center"
+                  className="shrink-0 h-10 w-10 rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition flex items-center justify-center"
                   aria-label="Close cancellation preview"
                 >
                   <CircleX size={18} />
                 </button>
               </div>
 
-              <p className="mt-3 text-sm text-white/72 leading-6">
+              <p className="mt-3 text-sm text-gray-600 leading-6">
                 {cancelPreview?.message || "Review the refund details before confirming cancellation."}
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
-                <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-emerald-200 font-semibold">
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700 font-semibold">
                   Seats released instantly
                 </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/75 font-semibold">
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700 font-semibold">
                   Convenience fee not refunded
                 </span>
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
-              <div className="rounded-3xl bg-white/5 border border-white/10 p-4 shadow-inner shadow-black/10">
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-semibold text-gray-900">Refund Summary</p>
                 <div className="grid grid-cols-1 gap-3 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-white/65">Refundable amount</span>
-                    <span className="font-semibold text-white">Rs {Number(cancelPreview?.refundableAmount || 0).toFixed(2)}</span>
+                  <div className="flex items-center justify-between gap-3 mt-2">
+                    <span className="text-gray-600">Refundable amount</span>
+                    <span className="font-semibold text-gray-900">Rs {Number(cancelPreview?.refundableAmount || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-white/65">Convenience fee deducted</span>
-                    <span className="font-semibold text-white">Rs {Number(cancelPreview?.convenienceFeeDeducted || 0).toFixed(2)}</span>
+                    <span className="text-gray-600">Convenience fee deducted</span>
+                    <span className="font-semibold text-gray-900">Rs {Number(cancelPreview?.convenienceFeeDeducted || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-white/65">Applicable refund</span>
-                    <span className="font-semibold text-white">{Number(cancelPreview?.refundPercentage || 0).toFixed(0)}% = Rs {Number(cancelPreview?.refundAmount || 0).toFixed(2)}</span>
+                    <span className="text-gray-600">Applicable refund</span>
+                    <span className="font-semibold text-emerald-700">{Number(cancelPreview?.refundPercentage || 0).toFixed(0)}% = Rs {Number(cancelPreview?.refundAmount || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-white/65">Current refund status</span>
-                    <span className="font-semibold uppercase tracking-wide text-amber-200">{formatRefundStatus(cancelPreview?.refundStatus)}</span>
+                    <span className="text-gray-600">Current refund status</span>
+                    <span className="font-semibold uppercase tracking-wide text-amber-700">{formatRefundStatus(cancelPreview?.refundStatus)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.03] p-4">
-                <p className="text-sm font-semibold text-white">Booking summary</p>
+              <div className="rounded-2xl border border-gray-200 bg-white p-4">
+                <p className="text-sm font-semibold text-gray-900">Ticket Info</p>
                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-2xl bg-black/10 px-3 py-2">
-                    <p className="text-[11px] text-white/50">Movie</p>
-                    <p className="mt-1 font-medium truncate">{selectedBooking?.show?.movie?.title || "-"}</p>
+                  <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
+                    <p className="text-[11px] text-gray-500">Movie</p>
+                    <p className="mt-1 font-semibold text-gray-900 truncate">{selectedBooking?.show?.movie?.title || "-"}</p>
                   </div>
-                  <div className="rounded-2xl bg-black/10 px-3 py-2">
-                    <p className="text-[11px] text-white/50">Seats</p>
-                    <p className="mt-1 font-medium truncate">{selectedBooking?.seatLabels || "-"}</p>
+                  <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2">
+                    <p className="text-[11px] text-gray-500">Seats</p>
+                    <p className="mt-1 font-semibold text-gray-900 truncate">{selectedBooking?.seatLabels || "-"}</p>
                   </div>
-                  <div className="rounded-2xl bg-black/10 px-3 py-2 col-span-2">
-                    <p className="text-[11px] text-white/50">Theater</p>
-                    <p className="mt-1 font-medium truncate">{selectedBooking?.show?.theater?.name || "-"}</p>
+                  <div className="rounded-xl bg-gray-50 border border-gray-200 px-3 py-2 col-span-2">
+                    <p className="text-[11px] text-gray-500">Theater</p>
+                    <p className="mt-1 font-semibold text-gray-900 truncate">{selectedBooking?.show?.theater?.name || "-"}</p>
                   </div>
                 </div>
               </div>
 
-              <p className="text-xs text-white/55 leading-5">
+              <p className="text-xs text-gray-500 leading-5">
                 Refund status will update in real time after cancellation. If refund initiation fails, the booking remains cancelled and the status will show the failure reason.
               </p>
             </div>
 
-            <div className="sticky bottom-0 z-10 grid grid-cols-2 gap-3 px-5 py-4 border-t border-white/10 bg-[#18110d]/95 backdrop-blur">
-              <button
+            <div className="sticky bottom-0 z-10 grid grid-cols-2 gap-3 px-5 py-4 border-t border-gray-200 bg-white">
+              <Button
                 onClick={closeCancelModal}
                 disabled={confirmingCancellation}
-                className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/85 hover:bg-white/10 disabled:opacity-50"
+                variant="outline"
+                className="h-11 rounded-xl text-gray-700"
               >
-                Keep Booking
-              </button>
-              <button
+                Go Back
+              </Button>
+              <Button
                 onClick={confirmCancellation}
                 disabled={confirmingCancellation}
-                className="rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3 text-sm font-bold text-[#2d1a00] hover:from-amber-300 hover:to-orange-400 disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg shadow-amber-900/30"
+                variant="destructive"
+                className="h-11 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2"
               >
                 {confirmingCancellation ? (
                   <>
@@ -513,9 +599,9 @@ const Bookings = () => {
                     Cancelling...
                   </>
                 ) : (
-                  "Confirm Cancel"
+                  "Confirm Cancellation"
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

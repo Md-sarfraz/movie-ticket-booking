@@ -36,14 +36,21 @@ export const getUserBookings = async (userId) => {
 };
 
 export const cancelUserBooking = async (bookingId, userId) => {
+    // userId is intentionally unused; backend derives user identity from JWT.
+    void userId;
+
     try {
-        // userId is intentionally unused; backend derives user identity from JWT.
-        void userId;
-        const response = await myAxios.post('/bookings/cancel-booking', {
-            bookingId,
-        });
+        const response = await myAxios.post(`/booking/cancel/${bookingId}`);
         return response.data;
     } catch (error) {
+        // Fallback to legacy payload endpoint while rolling out the new API.
+        if (error?.response?.status === 404) {
+            const legacyResponse = await myAxios.post('/bookings/cancel-booking', {
+                bookingId,
+            });
+            return legacyResponse.data;
+        }
+
         console.error('Error cancelling booking:', error);
         throw error;
     }
